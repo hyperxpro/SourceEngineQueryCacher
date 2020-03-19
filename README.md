@@ -1,5 +1,6 @@
-# SourceEngineQueryCacher
-Source Engine Query Cacher
+# Source Engine Query Cacher
+Source Engine Query Cacher for caching and responding A2S_INFO and A2S_PLAYER packets.
+
 
 ## How to run:
 1. Download and Install Java 11.
