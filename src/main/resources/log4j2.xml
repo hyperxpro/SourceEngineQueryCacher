@@ -3,13 +3,13 @@
 
     <Appenders>
         <Console name="ConsoleAppender" target="SYSTEM_OUT">
-            <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss,SSS} [%t] %-5level %c{1.} - %msg%n"/>
+            <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} [%t] %-5level %c{1.} - %msg%n"/>
         </Console>
     </Appenders>
 
     <Loggers>
 
-        <Logger name="com.aayushatharva.sourcecenginequerycacher" level="debug">
+        <Logger name="com.aayushatharva.sourcecenginequerycacher" level="info">
             <AppenderRef ref="ConsoleAppender"/>
         </Logger>
 
