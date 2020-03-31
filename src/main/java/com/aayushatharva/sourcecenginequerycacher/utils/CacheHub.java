@@ -1,6 +1,5 @@
 package com.aayushatharva.sourcecenginequerycacher.utils;
 
-import com.aayushatharva.sourcecenginequerycacher.Config;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 
@@ -27,6 +26,6 @@ public final class CacheHub {
             .maximumSize(Config.MaxChallengeCode)
             .expireAfterAccess(Duration.ofMillis(Config.ChallengeCodeTTL))
             .expireAfterWrite(Duration.ofSeconds(Config.ChallengeCodeTTL))
-            .concurrencyLevel(Config.ChallengeCacheConcurrency)
+            .concurrencyLevel(Config.ChallengeCodeCacheConcurrency)
             .build();
 }

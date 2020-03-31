@@ -1,5 +1,6 @@
 package com.aayushatharva.sourcecenginequerycacher;
 
+import com.aayushatharva.sourcecenginequerycacher.utils.Config;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -9,33 +10,36 @@ import java.util.Date;
 import java.util.concurrent.atomic.AtomicLong;
 
 public class Stats extends Thread {
-    public static final AtomicLong BPS = new AtomicLong();
 
-    public static final AtomicLong PPS = new AtomicLong();
     private static final Logger logger = LogManager.getLogger(Stats.class);
+
+    public static final AtomicLong BPS = new AtomicLong();
+    public static final AtomicLong PPS = new AtomicLong();
 
     @Override
     public void run() {
 
+        logger.atInfo().log("Starting Stats, PPS Enabled: " + Config.Stats_PPS + ", bPS Enabled: " + Config.Stats_bPS);
+
         while (true) {
 
-            if (Config.Stats_PPS && Config.Stats_BPS) {
+            if (Config.Stats_PPS && Config.Stats_bPS) {
                 System.out.print("[" + getTimestamp() + "] [STATS] PPS: " + PPS.getAndSet(0L));
-                System.out.println(" | BPS: " + calculateBps());
+                System.out.println(" | bPS: " + calculateBps());
             } else {
                 if (Config.Stats_PPS) {
-                    System.out.println("[" + getTimestamp() + "] [STATS] PPS: " + PPS.getAndSet(0L) + " | BPS: 0");
+                    System.out.println("[" + getTimestamp() + "] [STATS] PPS: " + PPS.getAndSet(0L) + " | bPS: 0");
                 }
 
-                if (Config.Stats_BPS) {
-                    System.out.println("[" + getTimestamp() + "] [STATS] PPS: 0 | BPS: " + calculateBps());
+                if (Config.Stats_bPS) {
+                    System.out.println("[" + getTimestamp() + "] [STATS] PPS: 0 | bPS: " + calculateBps());
                 }
             }
 
             try {
                 sleep(1000L);
             } catch (InterruptedException e) {
-                logger.atError().withThrowable(e).log("Error at Stats 1 Second Interval Sleep");
+                logger.atError().withThrowable(e).log("Error at Stats During Interval Sleep");
                 break;
             }
         }

@@ -3,6 +3,7 @@ package com.aayushatharva.sourcecenginequerycacher;
 import com.aayushatharva.sourcecenginequerycacher.gameserver.A2SINFO_Worker;
 import com.aayushatharva.sourcecenginequerycacher.gameserver.A2SPLAYER_Worker;
 import com.aayushatharva.sourcecenginequerycacher.utils.CacheCleaner;
+import com.aayushatharva.sourcecenginequerycacher.utils.Config;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.ChannelFuture;
@@ -42,13 +43,13 @@ public class Main {
             } else if (Config.Transport.equalsIgnoreCase("nio")) {
                 eventLoopGroup = new NioEventLoopGroup(Config.Threads);
             } else {
-                throw new IllegalArgumentException("Invalid Transport Type");
+                throw new IllegalArgumentException("Invalid Transport Type: " + Config.Transport);
             }
 
             Bootstrap bootstrap = new Bootstrap()
                     .group(eventLoopGroup)
                     .channelFactory(() -> {
-                        if (Epoll.isAvailable()) {
+                        if (Config.Transport.equalsIgnoreCase("epoll") && Epoll.isAvailable()) {
                             EpollDatagramChannel epollDatagramChannel = new EpollDatagramChannel();
 
                             epollDatagramChannel.config().setReceiveBufferSize(Config.ReceiveBufferSize);
@@ -73,10 +74,10 @@ public class Main {
             // Bind and Start Server
             ChannelFuture channelFuture = bootstrap.bind(Config.IPAddress, Config.Port).await();
 
-            logger.atInfo().log("Server Started on address: " + ((InetSocketAddress) channelFuture.channel().localAddress()).getAddress().getHostAddress() + ":" + ((InetSocketAddress) channelFuture.channel().localAddress()).getPort());
+            logger.atInfo().log("Server Started on Address: " + ((InetSocketAddress) channelFuture.channel().localAddress()).getAddress().getHostAddress() + ":" + ((InetSocketAddress) channelFuture.channel().localAddress()).getPort());
 
-            new A2SINFO_Worker().start();
-            new A2SPLAYER_Worker().start();
+            new A2SINFO_Worker("A2S_INFO").start();
+            new A2SPLAYER_Worker("A2S_PLAYER").start();
             new Stats().start();
             new CacheCleaner().start();
 

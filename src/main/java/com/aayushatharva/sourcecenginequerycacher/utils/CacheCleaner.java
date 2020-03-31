@@ -1,20 +1,26 @@
 package com.aayushatharva.sourcecenginequerycacher.utils;
 
-import com.aayushatharva.sourcecenginequerycacher.Config;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class CacheCleaner extends Thread {
 
+    private static final Logger logger = LogManager.getLogger(CacheCleaner.class);
+
     @Override
     public void run() {
+
+        logger.atInfo().log("Starting Challenge Code Cache Cleaner");
 
         while (true) {
             // Cleanup expired Challenge Codes
             CacheHub.CHALLENGE_CACHE.cleanUp();
 
             try {
-                Thread.sleep(Config.ChallengeCodeCacheCleanerInterval); // Wait for 250 Milliseconds before re-cleaning
+                // Wait before re-cleaning
+                sleep(Config.ChallengeCodeCacheCleanerInterval);
             } catch (InterruptedException e) {
-                e.printStackTrace();
+                logger.atError().withThrowable(e).log("Error at CacheCleaner During Interval Sleep");
                 break;
             }
         }
