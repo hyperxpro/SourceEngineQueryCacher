@@ -10,12 +10,12 @@ import java.util.concurrent.atomic.AtomicReference;
 public final class CacheHub {
 
     /**
-     * <p> Byte Array Holder for `A2S_INFO` Packet. </p>
+     * <p> ByteBuf Holder for `A2S_INFO` Packet. </p>
      */
     public static final AtomicReference<ByteBuf> A2S_INFO = new AtomicReference<>();
 
     /**
-     * <p> Byte Array Holder for `A2S_PLAYER` Packet. </p>
+     * <p> ByteBuf Holder for `A2S_PLAYER` Packet. </p>
      */
     public static final AtomicReference<ByteBuf> A2S_PLAYER = new AtomicReference<>();
 
