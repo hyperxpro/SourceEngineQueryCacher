@@ -2,8 +2,8 @@ package com.aayushatharva.sourcecenginequerycacher.utils;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import io.netty.buffer.ByteBuf;
 
-import java.nio.ByteBuffer;
 import java.time.Duration;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -12,12 +12,12 @@ public final class CacheHub {
     /**
      * <p> Byte Array Holder for `A2S_INFO` Packet. </p>
      */
-    public static final AtomicReference<ByteBuffer> A2S_INFO = new AtomicReference<>();
+    public static final AtomicReference<ByteBuf> A2S_INFO = new AtomicReference<>();
 
     /**
      * <p> Byte Array Holder for `A2S_PLAYER` Packet. </p>
      */
-    public static final AtomicReference<ByteBuffer> A2S_PLAYER = new AtomicReference<>();
+    public static final AtomicReference<ByteBuf> A2S_PLAYER = new AtomicReference<>();
 
     /**
      * Challenge Code Cache

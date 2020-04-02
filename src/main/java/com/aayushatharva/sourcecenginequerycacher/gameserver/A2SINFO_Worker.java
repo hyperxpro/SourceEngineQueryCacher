@@ -1,7 +1,8 @@
 package com.aayushatharva.sourcecenginequerycacher.gameserver;
 
-import com.aayushatharva.sourcecenginequerycacher.utils.Config;
+import com.aayushatharva.sourcecenginequerycacher.Main;
 import com.aayushatharva.sourcecenginequerycacher.utils.CacheHub;
+import com.aayushatharva.sourcecenginequerycacher.utils.Config;
 import com.aayushatharva.sourcecenginequerycacher.utils.Packets;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -10,7 +11,6 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.SocketTimeoutException;
-import java.nio.ByteBuffer;
 import java.util.Arrays;
 
 @SuppressWarnings("InfiniteLoopStatement")
@@ -49,7 +49,8 @@ public class A2SINFO_Worker extends Thread {
                     logger.atDebug().log("Received A2S_INFO update response from: " + Config.GameServerIPAddress.getHostAddress() + ":" + Config.GameServerPort);
 
                     // Cache the Packet
-                    CacheHub.A2S_INFO.set(ByteBuffer.wrap(Arrays.copyOfRange(responsePacket.getData(), responsePacket.getOffset(), responsePacket.getLength())));
+                    byte[] response = Arrays.copyOfRange(responsePacket.getData(), responsePacket.getOffset(), responsePacket.getLength());
+                    CacheHub.A2S_INFO.set(Main.alloc.directBuffer(response.length).writeBytes(response));
                     logger.atDebug().log("New A2S_INFO Update Cached Successfully");
 
                     // Wait sometime before updating

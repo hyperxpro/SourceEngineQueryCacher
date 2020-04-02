@@ -27,7 +27,7 @@ class Handler extends SimpleChannelInboundHandler<DatagramPacket> {
 
         if (Config.Stats_bPS) {
             Stats.BPS.addAndGet(datagramPacket.content().readableBytes());
-            logger.atDebug().log("Incrementing bPS count by " + datagramPacket.content().readableBytes()  + " bytes");
+            logger.atDebug().log("Incrementing bPS count by " + datagramPacket.content().readableBytes() + " bytes");
         }
 
         /*
@@ -47,7 +47,7 @@ class Handler extends SimpleChannelInboundHandler<DatagramPacket> {
 
             if (Arrays.equals(Packets.A2S_INFO_REQUEST, Packet)) {
                 logger.atDebug().log("Sending A2S_INFO Packet to: " + datagramPacket.sender().getAddress().getHostAddress() + ":" + datagramPacket.sender().getPort());
-                ctx.writeAndFlush(new DatagramPacket(Unpooled.wrappedBuffer(CacheHub.A2S_INFO.get()), datagramPacket.sender()));
+                ctx.writeAndFlush(new DatagramPacket(CacheHub.A2S_INFO.get(), datagramPacket.sender()));
             } else if (ByteArrayUtils.startsWith(Packet, Packets.A2S_PLAYER_HEADER)) {
 
                 /*
@@ -74,7 +74,7 @@ class Handler extends SimpleChannelInboundHandler<DatagramPacket> {
 
         // Add Challenge to Cache
         CacheHub.CHALLENGE_CACHE.put(toHexString(challenge), datagramPacket.sender().getAddress().getHostAddress());
-        
+
         // Log at Debug
         logger.atDebug().log("Sending A2S_Challenge Player Packet to: " + datagramPacket.sender().getAddress().getHostAddress() + ":" + datagramPacket.sender().getPort());
 
@@ -94,7 +94,7 @@ class Handler extends SimpleChannelInboundHandler<DatagramPacket> {
             // Match Client Current IP Address against Cache Stored Client IP Address
             if (ipAddressOfClient.equals(datagramPacket.sender().getAddress().getHostAddress())) {
                 logger.atDebug().log("Sending A2S_PLAYER Packet to: " + datagramPacket.sender().getAddress().getHostAddress() + ":" + datagramPacket.sender().getPort());
-                ctx.writeAndFlush(new DatagramPacket(Unpooled.wrappedBuffer(CacheHub.A2S_PLAYER.get()), datagramPacket.sender()));
+                ctx.writeAndFlush(new DatagramPacket(CacheHub.A2S_PLAYER.get(), datagramPacket.sender()));
             }
         } else {
             logger.atDebug().log("Invalid Challenge Code received from: " + datagramPacket.sender().getAddress().getHostAddress() + ":" + datagramPacket.sender().getPort() + " [REQUEST DROPPED]");
@@ -108,6 +108,7 @@ class Handler extends SimpleChannelInboundHandler<DatagramPacket> {
 
     /**
      * Convert Byte Array into Hex String
+     *
      * @param bytes Byte Array
      * @return Hex String
      */

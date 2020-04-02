@@ -1,8 +1,9 @@
 package com.aayushatharva.sourcecenginequerycacher.gameserver;
 
-import com.aayushatharva.sourcecenginequerycacher.utils.Config;
+import com.aayushatharva.sourcecenginequerycacher.Main;
 import com.aayushatharva.sourcecenginequerycacher.utils.ByteArrayUtils;
 import com.aayushatharva.sourcecenginequerycacher.utils.CacheHub;
+import com.aayushatharva.sourcecenginequerycacher.utils.Config;
 import com.aayushatharva.sourcecenginequerycacher.utils.Packets;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -11,7 +12,6 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.SocketTimeoutException;
-import java.nio.ByteBuffer;
 import java.util.Arrays;
 
 @SuppressWarnings("InfiniteLoopStatement")
@@ -66,7 +66,8 @@ public class A2SPLAYER_Worker extends Thread {
                     logger.atDebug().log("Received A2S_PLAYER update response from: " + Config.GameServerIPAddress.getHostAddress() + ":" + Config.GameServerPort);
 
                     // Cache the Packet
-                    CacheHub.A2S_PLAYER.set(ByteBuffer.wrap(Arrays.copyOfRange(responsePacket.getData(), responsePacket.getOffset(), responsePacket.getLength())));
+                    byte[] response = Arrays.copyOfRange(responsePacket.getData(), responsePacket.getOffset(), responsePacket.getLength());
+                    CacheHub.A2S_PLAYER.set(Main.alloc.directBuffer(response.length).writeBytes(response));
                     logger.atDebug().log("New A2S_PLAYER Update Cached Successfully");
 
                     // Wait 1 Second before querying game server again.

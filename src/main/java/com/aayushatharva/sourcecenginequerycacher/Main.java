@@ -5,6 +5,7 @@ import com.aayushatharva.sourcecenginequerycacher.gameserver.A2SPLAYER_Worker;
 import com.aayushatharva.sourcecenginequerycacher.utils.CacheCleaner;
 import com.aayushatharva.sourcecenginequerycacher.utils.Config;
 import io.netty.bootstrap.Bootstrap;
+import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.EventLoopGroup;
@@ -22,6 +23,8 @@ import java.net.InetSocketAddress;
 public class Main {
 
     private static final Logger logger = LogManager.getLogger(Main.class);
+
+    public static final ByteBufAllocator alloc = PooledByteBufAllocator.DEFAULT;;
 
     public static void main(String[] args) {
 
