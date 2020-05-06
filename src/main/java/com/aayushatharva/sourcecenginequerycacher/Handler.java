@@ -4,7 +4,6 @@ import com.aayushatharva.sourcecenginequerycacher.utils.ByteArrayUtils;
 import com.aayushatharva.sourcecenginequerycacher.utils.CacheHub;
 import com.aayushatharva.sourcecenginequerycacher.utils.Config;
 import com.aayushatharva.sourcecenginequerycacher.utils.Packets;
-import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.channel.socket.DatagramPacket;
@@ -22,12 +21,12 @@ class Handler extends SimpleChannelInboundHandler<DatagramPacket> {
 
         if (Config.Stats_PPS) {
             Stats.PPS.incrementAndGet();
-            logger.atDebug().log("Incrementing PPS count by 1");
+            logger.atDebug().log("Incrementing PPS count by 1 Packet");
         }
 
         if (Config.Stats_bPS) {
             Stats.BPS.addAndGet(datagramPacket.content().readableBytes());
-            logger.atDebug().log("Incrementing bPS count by " + datagramPacket.content().readableBytes() + " bytes");
+            logger.atDebug().log("Incrementing bPS count by {} Bytes", datagramPacket.content().readableBytes());
         }
 
         /*
@@ -43,11 +42,13 @@ class Handler extends SimpleChannelInboundHandler<DatagramPacket> {
             datagramPacket.content().readBytes(Packet);
 
             // Log at Debug
-            logger.atDebug().log("Received Packet of Length: " + Packet.length + " bytes from " + datagramPacket.sender().getAddress().getHostAddress() + ":" + datagramPacket.sender().getPort());
+            logger.atDebug().log("Received Packet of Length {} bytes from {}:{}",
+                    Packet.length, datagramPacket.sender().getAddress().getHostAddress(), datagramPacket.sender().getPort());
 
             if (Arrays.equals(Packets.A2S_INFO_REQUEST, Packet)) {
-                logger.atDebug().log("Sending A2S_INFO Packet to: " + datagramPacket.sender().getAddress().getHostAddress() + ":" + datagramPacket.sender().getPort());
-                ctx.writeAndFlush(new DatagramPacket(CacheHub.A2S_INFO.get(), datagramPacket.sender()));
+                logger.atDebug().log("Sending A2S_INFO Packet to {}:{}",
+                        datagramPacket.sender().getAddress().getHostAddress(), datagramPacket.sender().getPort());
+                ctx.writeAndFlush(new DatagramPacket(CacheHub.A2S_INFO.get().copy(), datagramPacket.sender()));
             } else if (ByteArrayUtils.startsWith(Packet, Packets.A2S_PLAYER_HEADER)) {
 
                 /*
@@ -63,7 +64,8 @@ class Handler extends SimpleChannelInboundHandler<DatagramPacket> {
                 }
             }
         } else {
-            logger.atDebug().log("Dropping Packet of Length: " + datagramPacket.content().readableBytes() + " bytes from " + datagramPacket.sender().getAddress().getHostAddress() + ":" + datagramPacket.sender().getPort());
+            logger.atDebug().log("Dropping Packet of Length {} bytes from {}:{}", datagramPacket.content().readableBytes(),
+                    datagramPacket.sender().getAddress().getHostAddress(), datagramPacket.sender().getPort());
         }
     }
 
@@ -76,10 +78,12 @@ class Handler extends SimpleChannelInboundHandler<DatagramPacket> {
         CacheHub.CHALLENGE_CACHE.put(toHexString(challenge), datagramPacket.sender().getAddress().getHostAddress());
 
         // Log at Debug
-        logger.atDebug().log("Sending A2S_Challenge Player Packet to: " + datagramPacket.sender().getAddress().getHostAddress() + ":" + datagramPacket.sender().getPort());
+        logger.atDebug().log("Sending A2S_Challenge Player Packet to {}:{}",
+                datagramPacket.sender().getAddress().getHostAddress(), datagramPacket.sender().getPort());
 
         // Send A2S PLAYER CHALLENGE Packet
-        ctx.writeAndFlush(new DatagramPacket(Unpooled.wrappedBuffer(ByteArrayUtils.joinArrays(Packets.A2S_PLAYER_CHALLENGE_RESPONSE, challenge)), datagramPacket.sender()));
+        ctx.writeAndFlush(new DatagramPacket(ctx.alloc().buffer().writeBytes(ByteArrayUtils.joinArrays(Packets.A2S_PLAYER_CHALLENGE_RESPONSE,
+                challenge)), datagramPacket.sender()));
     }
 
     private void sendA2SPlayerResponse(ChannelHandlerContext ctx, DatagramPacket datagramPacket, byte[] Packet) {
@@ -93,11 +97,14 @@ class Handler extends SimpleChannelInboundHandler<DatagramPacket> {
 
             // Match Client Current IP Address against Cache Stored Client IP Address
             if (ipAddressOfClient.equals(datagramPacket.sender().getAddress().getHostAddress())) {
-                logger.atDebug().log("Sending A2S_PLAYER Packet to: " + datagramPacket.sender().getAddress().getHostAddress() + ":" + datagramPacket.sender().getPort());
-                ctx.writeAndFlush(new DatagramPacket(CacheHub.A2S_PLAYER.get(), datagramPacket.sender()));
+                logger.atDebug().log("Sending A2S_PLAYER Packet to {}:{}",
+                        datagramPacket.sender().getAddress().getHostAddress(), datagramPacket.sender().getPort());
+
+                ctx.writeAndFlush(new DatagramPacket(CacheHub.A2S_PLAYER.get().copy(), datagramPacket.sender()));
             }
         } else {
-            logger.atDebug().log("Invalid Challenge Code received from: " + datagramPacket.sender().getAddress().getHostAddress() + ":" + datagramPacket.sender().getPort() + " [REQUEST DROPPED]");
+            logger.atDebug().log("Invalid Challenge Code received from {}:{} [REQUEST DROPPED]",
+                    datagramPacket.sender().getAddress().getHostAddress(), datagramPacket.sender().getPort());
         }
     }
 

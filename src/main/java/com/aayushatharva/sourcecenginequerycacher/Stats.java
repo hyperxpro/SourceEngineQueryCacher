@@ -12,16 +12,18 @@ import java.util.concurrent.atomic.AtomicLong;
 public class Stats extends Thread {
 
     private static final Logger logger = LogManager.getLogger(Stats.class);
+    private boolean keepRunning = true;
 
     public static final AtomicLong BPS = new AtomicLong();
     public static final AtomicLong PPS = new AtomicLong();
 
+    @SuppressWarnings("BusyWait")
     @Override
     public void run() {
 
         logger.atInfo().log("Starting Stats, PPS Enabled: " + Config.Stats_PPS + ", bPS Enabled: " + Config.Stats_bPS);
 
-        while (true) {
+        while (keepRunning) {
 
             if (Config.Stats_PPS && Config.Stats_bPS) {
                 System.out.print("[" + getTimestamp() + "] [STATS] PPS: " + PPS.getAndSet(0L));
@@ -40,7 +42,12 @@ public class Stats extends Thread {
                 sleep(1000L);
             } catch (InterruptedException e) {
                 logger.atError().withThrowable(e).log("Error at Stats During Interval Sleep");
-                break;
+                return;
+            }
+
+            // If false then we're requested to shutdown.
+            if (!keepRunning) {
+                return;
             }
         }
     }
@@ -55,5 +62,10 @@ public class Stats extends Thread {
     private String getTimestamp() {
         SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss.SSS");
         return sdf.format(new Date());
+    }
+
+    public void shutdown() {
+        this.interrupt();
+        keepRunning = false;
     }
 }

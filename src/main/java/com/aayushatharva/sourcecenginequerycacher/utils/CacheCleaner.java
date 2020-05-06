@@ -6,13 +6,15 @@ import org.apache.logging.log4j.Logger;
 public class CacheCleaner extends Thread {
 
     private static final Logger logger = LogManager.getLogger(CacheCleaner.class);
+    private boolean keepRunning = true;
 
+    @SuppressWarnings("BusyWait")
     @Override
     public void run() {
 
         logger.atInfo().log("Starting Challenge Code Cache Cleaner");
 
-        while (true) {
+        while (keepRunning) {
             // Cleanup expired Challenge Codes
             CacheHub.CHALLENGE_CACHE.cleanUp();
 
@@ -23,6 +25,16 @@ public class CacheCleaner extends Thread {
                 logger.atError().withThrowable(e).log("Error at CacheCleaner During Interval Sleep");
                 break;
             }
+
+            // If false then we're requested to shutdown.
+            if (!keepRunning) {
+                return;
+            }
         }
+    }
+
+    public void shutdown() {
+        this.interrupt();
+        keepRunning = false;
     }
 }
