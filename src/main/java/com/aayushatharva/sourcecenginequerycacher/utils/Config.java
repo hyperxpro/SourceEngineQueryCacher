@@ -9,7 +9,7 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.util.Properties;
 
-public class Config {
+public final class Config {
 
     private static final Logger logger = LogManager.getLogger(Config.class);
     private static final Options options;

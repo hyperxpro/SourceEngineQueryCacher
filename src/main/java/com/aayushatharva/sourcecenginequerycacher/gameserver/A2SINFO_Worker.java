@@ -4,6 +4,7 @@ import com.aayushatharva.sourcecenginequerycacher.Main;
 import com.aayushatharva.sourcecenginequerycacher.utils.CacheHub;
 import com.aayushatharva.sourcecenginequerycacher.utils.Config;
 import com.aayushatharva.sourcecenginequerycacher.utils.Packets;
+import com.aayushatharva.sourcecenginequerycacher.utils.Utils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -13,7 +14,7 @@ import java.net.DatagramSocket;
 import java.net.SocketTimeoutException;
 import java.util.Arrays;
 
-public class A2SINFO_Worker extends Thread {
+public final class A2SINFO_Worker extends Thread {
 
     private static final Logger logger = LogManager.getLogger(A2SINFO_Worker.class);
     private boolean keepRunning = true;
@@ -52,10 +53,11 @@ public class A2SINFO_Worker extends Thread {
 
                     // Cache the Packet
                     byte[] response = Arrays.copyOfRange(responsePacket.getData(), responsePacket.getOffset(), responsePacket.getLength());
-                    if (CacheHub.A2S_INFO.get() != null && CacheHub.A2S_INFO.get().refCnt() > 0) {
-                        CacheHub.A2S_INFO.get().release();
-                    }
-                    CacheHub.A2S_INFO.set(Main.alloc.directBuffer(response.length).writeBytes(response));
+
+                    // Release the ByteBuf
+                    Utils.safeRelease(CacheHub.A2S_INFO.get());
+
+                    CacheHub.A2S_INFO.set(Main.BYTE_BUF_ALLOCATOR.directBuffer(response.length).writeBytes(response));
                     logger.atDebug().log("New A2S_INFO Update Cached Successfully");
 
                     // Wait sometime before updating

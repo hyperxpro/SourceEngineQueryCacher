@@ -13,7 +13,7 @@ import org.apache.logging.log4j.Logger;
 import java.util.Arrays;
 import java.util.Random;
 
-class Handler extends SimpleChannelInboundHandler<DatagramPacket> {
+final class Handler extends SimpleChannelInboundHandler<DatagramPacket> {
 
     private static final Logger logger = LogManager.getLogger(Handler.class);
 

@@ -3,7 +3,7 @@ package com.aayushatharva.sourcecenginequerycacher.utils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-public class CacheCleaner extends Thread {
+public final class CacheCleaner extends Thread {
 
     private static final Logger logger = LogManager.getLogger(CacheCleaner.class);
     private boolean keepRunning = true;

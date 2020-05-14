@@ -9,7 +9,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.concurrent.atomic.AtomicLong;
 
-public class Stats extends Thread {
+final class Stats extends Thread {
 
     private static final Logger logger = LogManager.getLogger(Stats.class);
     private boolean keepRunning = true;

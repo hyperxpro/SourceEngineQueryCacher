@@ -16,6 +16,7 @@ import io.netty.channel.epoll.Epoll;
 import io.netty.channel.epoll.EpollDatagramChannel;
 import io.netty.channel.epoll.EpollEventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.channel.socket.InternetProtocolFamily;
 import io.netty.channel.socket.nio.NioDatagramChannel;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -24,9 +25,9 @@ import java.net.InetSocketAddress;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
-public class Main {
+public final class Main {
 
-    public static final ByteBufAllocator alloc = PooledByteBufAllocator.DEFAULT;
+    public static final ByteBufAllocator BYTE_BUF_ALLOCATOR = PooledByteBufAllocator.DEFAULT;
     private static final Logger logger = LogManager.getLogger(Main.class);
 
     private static EventLoopGroup eventLoopGroup;
@@ -60,19 +61,19 @@ public class Main {
                     .group(eventLoopGroup)
                     .channelFactory(() -> {
                         if (Config.Transport.equalsIgnoreCase("epoll") && Epoll.isAvailable()) {
-                            return new EpollDatagramChannel();
+                            return new EpollDatagramChannel(InternetProtocolFamily.IPv4);
                         } else {
-                            return new NioDatagramChannel();
+                            return new NioDatagramChannel(InternetProtocolFamily.IPv4);
                         }
                     })
-                    .option(ChannelOption.ALLOCATOR, alloc)
+                    .option(ChannelOption.ALLOCATOR, BYTE_BUF_ALLOCATOR)
                     .option(ChannelOption.SO_SNDBUF, Config.SendBufferSize)
                     .option(ChannelOption.SO_RCVBUF, Config.ReceiveBufferSize)
                     .option(ChannelOption.RCVBUF_ALLOCATOR, new FixedRecvByteBufAllocator(Config.FixedReceiveAllocatorBufferSize))
                     .handler(new Handler());
 
             // Bind and Start Server
-            ChannelFuture channelFuture = bootstrap.bind(Config.IPAddress, Config.Port).await();
+            ChannelFuture channelFuture = bootstrap.bind(Config.IPAddress, Config.Port).sync();
 
             logger.atInfo().log("Server Started on Address: {}:{}",
                     ((InetSocketAddress) channelFuture.channel().localAddress()).getAddress().getHostAddress(),
@@ -95,6 +96,9 @@ public class Main {
         }
     }
 
+    /**
+     * Shutdown everything
+     */
     public void shutdown() throws ExecutionException, InterruptedException {
         Future<?> future = eventLoopGroup.shutdownGracefully();
         a2SINFO_worker.shutdown();
@@ -114,8 +118,7 @@ public class Main {
         cacheCleaner.shutdown();
         future.get();
 
-        // Call GC to wipe out everything and wait 2.5 seconds before finishing this call.
+        // Call GC to wipe out everything
         System.gc();
-        Thread.sleep(2500);
     }
 }
