@@ -6,7 +6,7 @@
 
     <groupId>com.aayushatharva</groupId>
     <artifactId>SourceEngineQueryCacher</artifactId>
-    <version>1.4.0.0</version>
+    <version>1.5.0-SNAPSHOT</version>
 
     <properties>
         <java.version>11</java.version>
