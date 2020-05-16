@@ -1,7 +1,7 @@
 package com.aayushatharva.sourcecenginequerycacher;
 
-import com.aayushatharva.sourcecenginequerycacher.gameserver.A2SINFO_Worker;
-import com.aayushatharva.sourcecenginequerycacher.gameserver.A2SPLAYER_Worker;
+import com.aayushatharva.sourcecenginequerycacher.gameserver.a2sinfo.InfoClient;
+import com.aayushatharva.sourcecenginequerycacher.gameserver.a2splayer.PlayerClient;
 import com.aayushatharva.sourcecenginequerycacher.utils.CacheCleaner;
 import com.aayushatharva.sourcecenginequerycacher.utils.CacheHub;
 import com.aayushatharva.sourcecenginequerycacher.utils.Config;
@@ -30,11 +30,11 @@ public final class Main {
     public static final ByteBufAllocator BYTE_BUF_ALLOCATOR = PooledByteBufAllocator.DEFAULT;
     private static final Logger logger = LogManager.getLogger(Main.class);
 
-    private static EventLoopGroup eventLoopGroup;
-    private static A2SINFO_Worker a2SINFO_worker;
-    private static A2SPLAYER_Worker a2SPLAYER_worker;
+    public static EventLoopGroup eventLoopGroup;
     private static Stats stats;
     private static CacheCleaner cacheCleaner;
+    private static InfoClient infoClient;
+    private static PlayerClient playerClient;
 
     public static void main(String[] args) {
 
@@ -73,21 +73,21 @@ public final class Main {
                     .handler(new Handler());
 
             // Bind and Start Server
-            ChannelFuture channelFuture = bootstrap.bind(Config.IPAddress, Config.Port).sync();
+            ChannelFuture channelFuture = bootstrap.bind(Config.LocalServer.getAddress(), Config.LocalServer.getPort()).sync();
 
             logger.atInfo().log("Server Started on Address: {}:{}",
                     ((InetSocketAddress) channelFuture.channel().localAddress()).getAddress().getHostAddress(),
                     ((InetSocketAddress) channelFuture.channel().localAddress()).getPort());
 
-            a2SINFO_worker = new A2SINFO_Worker("A2S_INFO");
-            a2SPLAYER_worker = new A2SPLAYER_Worker("A2S_PLAYER");
             stats = new Stats();
             cacheCleaner = new CacheCleaner();
+            infoClient = new InfoClient("A2SInfoClient");
+            playerClient = new PlayerClient("A2SPlayerClient");
 
-            a2SINFO_worker.start();
-            a2SPLAYER_worker.start();
             stats.start();
             cacheCleaner.start();
+            infoClient.start();
+            playerClient.start();
 
             // Keep Running
             channelFuture.syncUninterruptibly();
@@ -101,8 +101,8 @@ public final class Main {
      */
     public void shutdown() throws ExecutionException, InterruptedException {
         Future<?> future = eventLoopGroup.shutdownGracefully();
-        a2SINFO_worker.shutdown();
-        a2SPLAYER_worker.shutdown();
+        infoClient.shutdown();
+        playerClient.shutdown();
         CacheHub.CHALLENGE_CACHE.invalidateAll();
         CacheHub.CHALLENGE_CACHE.cleanUp();
 

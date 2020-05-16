@@ -7,6 +7,7 @@ import org.apache.logging.log4j.Logger;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.util.Properties;
 
 public final class Config {
@@ -55,10 +56,8 @@ public final class Config {
     public static int ChallengeCodeCacheConcurrency = 8;
 
     // IP Addresses and Ports
-    public static InetAddress IPAddress = InetAddress.getLoopbackAddress();
-    public static Integer Port = 27016;
-    public static InetAddress GameServerIPAddress = InetAddress.getLoopbackAddress();
-    public static Integer GameServerPort = 27015;
+    public static InetSocketAddress LocalServer = new InetSocketAddress(InetAddress.getLoopbackAddress(), 27016);
+    public static InetSocketAddress GameServer = new InetSocketAddress(InetAddress.getLoopbackAddress(), 27015);
 
     // Buffers
     public static Integer ReceiveBufferSize = 65535;
@@ -92,8 +91,8 @@ public final class Config {
                 /* IP Addresses and Ports */
                 .addOption("gameip", true, "Game Server IP Address")
                 .addOption("gameport", true, "Game Server Port")
-                .addOption("bind", true, "IP Address on which Cacher Server will bind and listen")
-                .addOption("port", true, "Port on which Cacher Server will bind and listen")
+                .addOption("bind", true, "Local Server IP Address on which Cacher Server will bind and listen")
+                .addOption("port", true, "Local Server Port on which Cacher Server will bind and listen")
 
                 /* Buffers */
                 .addOption("r", "receiveBuf", true, "Server Receive Buffer Size")
@@ -160,21 +159,29 @@ public final class Config {
                 ChallengeCodeCacheCleanerInterval = Long.parseLong(cmd.getOptionValue("challengeCodeCacheConcurrency"));
             }
 
+            InetAddress GameServerIPAddress = InetAddress.getLoopbackAddress();
             if (cmd.getOptionValue("gameip") != null) {
                 GameServerIPAddress = InetAddress.getByName(cmd.getOptionValue("gameip"));
             }
 
+            int GameServerPort = 27015;
             if (cmd.getOptionValue("gameport") != null) {
                 GameServerPort = Integer.parseInt(cmd.getOptionValue("gameport"));
             }
 
+            GameServer = new InetSocketAddress(GameServerIPAddress, GameServerPort);
+
+            InetAddress LocalServerIPAddress = InetAddress.getLoopbackAddress();
             if (cmd.getOptionValue("bind") != null) {
-                IPAddress = InetAddress.getByName(cmd.getOptionValue("bind"));
+                LocalServerIPAddress = InetAddress.getByName(cmd.getOptionValue("bind"));
             }
 
+            int Port = 27016;
             if (cmd.getOptionValue("port") != null) {
                 Port = Integer.parseInt(cmd.getOptionValue("port"));
             }
+
+            LocalServer = new InetSocketAddress(LocalServerIPAddress, Port);
 
             if (cmd.getOptionValue("receiveBuf") != null) {
                 ReceiveBufferSize = Integer.parseInt(cmd.getOptionValue("receiveBuf"));
@@ -208,18 +215,23 @@ public final class Config {
         GameUpdateSocketTimeout = Integer.parseInt(Data.getProperty("GameUpdateSocketTimeout", String.valueOf(GameUpdateSocketTimeout)));
 
         MaxChallengeCode = Long.parseLong(Data.getProperty("MaxChallengeCode", String.valueOf(MaxChallengeCode)));
-        ChallengeCodeCacheCleanerInterval = Long.parseLong(Data.getProperty("ChallengeCacheCleanerInterval", String.valueOf(ChallengeCodeCacheCleanerInterval)));
+        ChallengeCodeCacheCleanerInterval = Long.parseLong(Data.getProperty("ChallengeCacheCleanerInterval",
+                String.valueOf(ChallengeCodeCacheCleanerInterval)));
         ChallengeCodeTTL = Long.parseLong(Data.getProperty("ChallengeCodeTTL", String.valueOf(ChallengeCodeTTL)));
-        ChallengeCodeCacheConcurrency = Integer.parseInt(Data.getProperty("ChallengeCacheConcurrency", String.valueOf(ChallengeCodeCacheConcurrency)));
+        ChallengeCodeCacheConcurrency = Integer.parseInt(Data.getProperty("ChallengeCacheConcurrency",
+                String.valueOf(ChallengeCodeCacheConcurrency)));
 
-        IPAddress = InetAddress.getByName(Data.getProperty("IPAddress", IPAddress.getHostAddress()));
-        Port = Integer.parseInt(Data.getProperty("Port", String.valueOf(Port)));
-        GameServerIPAddress = InetAddress.getByName(Data.getProperty("GameServerIPAddress", GameServerIPAddress.getHostAddress()));
-        GameServerPort = Integer.parseInt(Data.getProperty("GameServerPort", String.valueOf(GameServerPort)));
+        LocalServer = new InetSocketAddress(InetAddress.getByName(Data.getProperty("LocalServerIPAddress",
+                InetAddress.getLoopbackAddress().getHostAddress())), Integer.parseInt(Data.getProperty("LocalServerPort",
+                "27016")));
+        GameServer  = new InetSocketAddress(InetAddress.getByName(Data.getProperty("GameServerIPAddress",
+                InetAddress.getLoopbackAddress().getHostAddress())), Integer.parseInt(Data.getProperty("GameServerPort",
+                "27015")));
 
         ReceiveBufferSize = Integer.parseInt(Data.getProperty("ReceiveBufferSize", String.valueOf(ReceiveBufferSize)));
         SendBufferSize = Integer.parseInt(Data.getProperty("SendBufferSize", String.valueOf(SendBufferSize)));
-        FixedReceiveAllocatorBufferSize = Integer.parseInt(Data.getProperty("FixedReceiveAllocatorBufferSize", String.valueOf(FixedReceiveAllocatorBufferSize)));
+        FixedReceiveAllocatorBufferSize = Integer.parseInt(Data.getProperty("FixedReceiveAllocatorBufferSize",
+                String.valueOf(FixedReceiveAllocatorBufferSize)));
 
         Data.clear(); // Clear Properties
     }
@@ -239,10 +251,10 @@ public final class Config {
         logger.atDebug().log("ChallengeCodeCacheCleanerInterval: " + ChallengeCodeCacheCleanerInterval);
         logger.atDebug().log("ChallengeCodeCacheConcurrency: " + ChallengeCodeCacheConcurrency);
 
-        logger.atDebug().log("IPAddress: " + IPAddress.getHostAddress());
-        logger.atDebug().log("Port: " + Port);
-        logger.atDebug().log("GameServerIPAddress: " + GameServerIPAddress.getHostAddress());
-        logger.atDebug().log("GameServerPort: " + GameServerPort);
+        logger.atDebug().log("LocalServerIPAddress: " + LocalServer.getAddress().getHostAddress());
+        logger.atDebug().log("LocalServerPort: " + LocalServer.getPort());
+        logger.atDebug().log("GameServerIPAddress: " + GameServer.getAddress().getHostAddress());
+        logger.atDebug().log("GameServerPort: " + GameServer.getPort());
 
         logger.atDebug().log("ReceiveBufferSize: " + ReceiveBufferSize);
         logger.atDebug().log("SendBufferSize: " + SendBufferSize);
