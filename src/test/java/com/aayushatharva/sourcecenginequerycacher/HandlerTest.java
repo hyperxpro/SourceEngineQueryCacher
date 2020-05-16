@@ -1,9 +1,15 @@
 package com.aayushatharva.sourcecenginequerycacher;
 
-import com.aayushatharva.sourcecenginequerycacher.utils.ByteArrayUtils;
 import com.aayushatharva.sourcecenginequerycacher.utils.Config;
 import com.aayushatharva.sourcecenginequerycacher.utils.Packets;
-import org.junit.jupiter.api.*;
+import io.netty.buffer.ByteBufUtil;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.MethodOrderer;
+import org.junit.jupiter.api.Order;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestMethodOrder;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
@@ -29,10 +35,17 @@ class HandlerTest {
         main.shutdown();
     }
 
+    public static byte[] joinArrays(final byte[] array1, byte[] array2) {
+        byte[] joinedArray = Arrays.copyOf(array1, array1.length + array2.length);
+        System.arraycopy(array2, 0, joinedArray, array1.length, array2.length);
+        return joinedArray;
+    }
+
     @Test
     @Order(1)
     void A2SINFO() throws IOException {
-        DatagramPacket queryPck = new DatagramPacket(Packets.A2S_INFO_REQUEST, 0, Packets.A2S_INFO_REQUEST.length, Config.IPAddress, Config.Port);
+        DatagramPacket queryPck = new DatagramPacket(ByteBufUtil.getBytes(Packets.A2S_INFO_REQUEST), 0,
+                ByteBufUtil.getBytes(Packets.A2S_INFO_REQUEST).length, Config.LocalServer.getAddress(), Config.LocalServer.getPort());
         byte[] responseBytes = new byte[4096];
         DatagramPacket responsePacket = new DatagramPacket(responseBytes, responseBytes.length);
 
@@ -49,8 +62,8 @@ class HandlerTest {
     @Test
     @Order(2)
     void A2SPlayerChallenge() throws IOException {
-        DatagramPacket queryPck = new DatagramPacket(Packets.A2S_PLAYER_CHALLENGE_REQUEST_A, 0, Packets.A2S_PLAYER_CHALLENGE_REQUEST_A.length,
-                Config.IPAddress, Config.Port);
+        DatagramPacket queryPck = new DatagramPacket(ByteBufUtil.getBytes(Packets.A2S_PLAYER_CHALLENGE_REQUEST_1), 0,
+                ByteBufUtil.getBytes(Packets.A2S_PLAYER_CHALLENGE_REQUEST_1).length, Config.LocalServer.getAddress(), Config.LocalServer.getPort());
 
         byte[] responseBytes = new byte[4096];
         DatagramPacket responsePacket = new DatagramPacket(responseBytes, responseBytes.length);
@@ -71,8 +84,9 @@ class HandlerTest {
     @Test
     @Order(3)
     void A2SPlayer() throws IOException {
-        byte[] Response = ByteArrayUtils.joinArrays(Packets.A2S_PLAYER_HEADER, a2sChallenge);
-        DatagramPacket queryPck = new DatagramPacket(Response, 0, Response.length, Config.IPAddress, Config.Port);
+        byte[] Response = joinArrays(ByteBufUtil.getBytes(Packets.A2S_PLAYER_REQUEST_HEADER), a2sChallenge);
+        DatagramPacket queryPck = new DatagramPacket(Response, 0, Response.length,
+                Config.LocalServer.getAddress(), Config.LocalServer.getPort());
 
         byte[] responseBytes = new byte[4096];
         DatagramPacket responsePacket = new DatagramPacket(responseBytes, responseBytes.length);

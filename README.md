@@ -40,7 +40,7 @@ FixedReceiveAllocatorBufferSize: Fixed Receive ByteBuf Allocator Buffer Size
 ```
 -a,--receiveAllocatorBuf <arg>         Fixed Receive ByteBuf Allocator  Buffer Size
 -b,--bpsStats                          Enable Bits per Second Stats
--bind <arg>                            IP Address on which Cacher Server will bind and listen
+-bind <arg>                            Local Server IP Address on which Cacher Server will bind and listen
 -c,--config <arg>                      Configuration File Path
 -challengeCodeCacheCleaner <arg>       Challenge Code Cache Cleaner Interval in Milliseconds
 -challengeCodeCacheConcurrency <arg>   Challenge Code Cache Concurrency
@@ -52,7 +52,7 @@ FixedReceiveAllocatorBufferSize: Fixed Receive ByteBuf Allocator Buffer Size
 -h,--help                              Display Usages
 -maxChallengeCode <arg>                Maximum Challenge Codes to be saved
 -p,--ppsStats                          Enable Packets per Second Stats
--port <arg>                            Port on which Cacher Server will bind and listen
+-port <arg>                            Local Server Port on which Cacher Server will bind and listen
 -r,--receiveBuf <arg>                  Server Receive Buffer Size
 -s,--sendBuf <arg>                     Server Send Buffer Size
 -t,--transport <arg>                   Set Transport to be used [Epoll or Nio]
