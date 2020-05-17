@@ -10,13 +10,14 @@ Source Engine Query Cacher for caching and responding A2S_INFO and A2S_PLAYER pa
 5. Configure IPTables for routing Query Packets and everything is done.
 
 ## Redirect Query Packets to Query Cacher in Linux using IPTables
-```sh
+```
 iptables -t nat -A PREROUTING -p udp --dport 27015 --match string --algo kmp --hex-string '|FFFFFFFF54|' -j REDIRECT --to-ports 9110
 iptables -t nat -A PREROUTING -p udp --dport 27015 --match string --algo kmp --hex-string '|FFFFFFFF55|' -j REDIRECT --to-ports 9110
 iptables -t nat -A PREROUTING -p udp --dport 27015 --match string --algo kmp --hex-string '|FFFFFFFF41|' -j REDIRECT --to-ports 9110
 ```
 ## Configuration
 ### Configuration File
+Execute the following command to load configuration file: `java -jar SourceEngineQueryCacher-1.4.0.0.jar -c Config.conf`
 ```
 Transport: Set Transport to be used (Epoll or Nio)
 Threads: Number of Threads
@@ -37,6 +38,7 @@ SendBufferSize: Server Send Buffer Size
 FixedReceiveAllocatorBufferSize: Fixed Receive ByteBuf Allocator Buffer Size
 ```
 ### Process Arguments
+Example: Execute the following command to pass Process Arguments: `java -jar SourceEngineQueryCacher-1.4.0.0.jar -bind 192.168.1.100 -port 27015`
 ```
 -a,--receiveAllocatorBuf <arg>         Fixed Receive ByteBuf Allocator  Buffer Size
 -b,--bpsStats                          Enable Bits per Second Stats
