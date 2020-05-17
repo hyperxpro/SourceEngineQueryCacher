@@ -5,6 +5,7 @@ import com.aayushatharva.sourcecenginequerycacher.gameserver.a2splayer.PlayerCli
 import com.aayushatharva.sourcecenginequerycacher.utils.CacheCleaner;
 import com.aayushatharva.sourcecenginequerycacher.utils.CacheHub;
 import com.aayushatharva.sourcecenginequerycacher.utils.Config;
+import com.aayushatharva.sourcecenginequerycacher.utils.Utils;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.PooledByteBufAllocator;
@@ -106,13 +107,8 @@ public final class Main {
         CacheHub.CHALLENGE_CACHE.invalidateAll();
         CacheHub.CHALLENGE_CACHE.cleanUp();
 
-        if (CacheHub.A2S_INFO.get() != null && CacheHub.A2S_INFO.get().refCnt() > 0) {
-            CacheHub.A2S_INFO.get().release();
-        }
-
-        if (CacheHub.A2S_PLAYER.get() != null && CacheHub.A2S_PLAYER.get().refCnt() > 0) {
-            CacheHub.A2S_PLAYER.get().release();
-        }
+        Utils.safeRelease(CacheHub.A2S_INFO.get());
+        Utils.safeRelease(CacheHub.A2S_PLAYER.get());
 
         stats.shutdown();
         cacheCleaner.shutdown();
