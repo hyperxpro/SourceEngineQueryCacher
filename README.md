@@ -5,7 +5,7 @@ Source Engine Query Cacher for caching and responding A2S_INFO and A2S_PLAYER pa
 ## How to run:
 1. Download and Install Java 11.
 2. Download Source Engine Query Cacher Binary.
-3. Execute the following command: SourceEngineQueryCacher-1.0.0.0.jar
+3. Execute the following command: `java -jar SourceEngineQueryCacher-1.4.0.0.jar`
 4. Source Engine Query Cacher will start and display 'Server Started on Socket: IP:PORT'.
 5. Configure IPTables for routing Query Packets and everything is done.
 
