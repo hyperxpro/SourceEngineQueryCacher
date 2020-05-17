@@ -10,7 +10,7 @@ Source Engine Query Cacher for caching and responding A2S_INFO and A2S_PLAYER pa
 5. Configure IPTables for routing Query Packets and everything is done.
 
 ## Redirect Query Packets to Query Cacher in Linux using IPTables
-```
+```sh
 iptables -t nat -A PREROUTING -p udp --dport 27015 --match string --algo kmp --hex-string '|FFFFFFFF54|' -j REDIRECT --to-ports 9110
 iptables -t nat -A PREROUTING -p udp --dport 27015 --match string --algo kmp --hex-string '|FFFFFFFF55|' -j REDIRECT --to-ports 9110
 iptables -t nat -A PREROUTING -p udp --dport 27015 --match string --algo kmp --hex-string '|FFFFFFFF41|' -j REDIRECT --to-ports 9110
