@@ -1,5 +1,16 @@
 # Source Engine Query Cacher
-Source Engine Query Cacher for caching and responding A2S_INFO and A2S_PLAYER packets.
+<p> High-Performance Source Engine Query Cacher for caching and responding A2S_INFO and A2S_PLAYER packets. </p>
+<p> Features:
+  <ol>
+    <li> Built on top of Netty. </li>
+    <li> Uses Direct Buffers to minimuze memory copy and garbage creation in JVM. </li>
+    <li> Truely Asynchronous. </li>
+    <li> Supports native Epoll transport. </li>
+    <li> In-Memory Cache for storing A2S_PLAYER challenge codes. </li>
+    <li> Multi-threaded with configurable thread count for maximum performance </li>
+    <li> Highly configurable using Configuration file or Process arguments. </li>
+  </ol>
+</p>
 
 
 ## How to run:
