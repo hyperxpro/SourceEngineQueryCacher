@@ -40,8 +40,8 @@ MaxChallengeCode: Maximum Challenge Codes to be saved
 ChallengeCacheCleanerInterval: Challenge Code Cache Cleaner Interval in Milliseconds
 ChallengeCodeTTL: Maximum Validity of Challenge Code in Milliseconds
 ChallengeCodeCacheConcurrency: Challenge Code Cache Concurrency
-IPAddress: IP Address on which Cacher Server will bind and listen
-Port: Port on which Cacher Server will bind and listen
+LocalServerIPAddress: IP Address on which Cacher Server will bind and listen
+LocalServerPort: Port on which Cacher Server will bind and listen
 GameServerIPAddress: Game Server IP Address
 GameServerPort: Game Server Port
 ReceiveBufferSize: Server Receive Buffer Size
