@@ -6,7 +6,7 @@
 
     <groupId>com.aayushatharva</groupId>
     <artifactId>SourceEngineQueryCacher</artifactId>
-    <version>1.5.0-SNAPSHOT</version>
+    <version>1.5.0</version>
 
     <properties>
         <java.version>11</java.version>
@@ -26,21 +26,7 @@
         <!-- https://mvnrepository.com/artifact/io.netty/netty-handler -->
         <dependency>
             <groupId>io.netty</groupId>
-            <artifactId>netty-handler</artifactId>
-            <version>${netty}</version>
-        </dependency>
-
-        <!-- https://mvnrepository.com/artifact/io.netty/netty-buffer -->
-        <dependency>
-            <groupId>io.netty</groupId>
-            <artifactId>netty-buffer</artifactId>
-            <version>${netty}</version>
-        </dependency>
-
-        <!-- https://mvnrepository.com/artifact/io.netty/netty-transport-native-epoll -->
-        <dependency>
-            <groupId>io.netty</groupId>
-            <artifactId>netty-transport-native-epoll</artifactId>
+            <artifactId>netty-all</artifactId>
             <version>${netty}</version>
         </dependency>
 
