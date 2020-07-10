@@ -16,7 +16,7 @@
 ## How to run:
 1. Download and Install Java 11.
 2. Download Source Engine Query Cacher Binary.
-3. Execute the following command: `java -jar SourceEngineQueryCacher-1.4.0.0.jar`
+3. Execute the following command: `java -jar SourceEngineQueryCacher-1.5.0.jar`
 4. Source Engine Query Cacher will start and display 'Server Started on Socket: IP:PORT'.
 5. Configure IPTables for routing Query Packets and everything is done.
 
@@ -28,7 +28,7 @@ iptables -t nat -A PREROUTING -p udp --dport 27015 --match string --algo kmp --h
 ```
 ## Configuration
 ### Configuration File
-Execute the following command to load configuration file: `java -jar SourceEngineQueryCacher-1.4.0.0.jar -c Config.conf`
+Execute the following command to load configuration file: `java -jar SourceEngineQueryCacher-1.5.0.jar -c Config.conf`
 ```
 Transport: Set Transport to be used (Epoll or Nio)
 Threads: Number of Threads
@@ -49,7 +49,7 @@ SendBufferSize: Server Send Buffer Size
 FixedReceiveAllocatorBufferSize: Fixed Receive ByteBuf Allocator Buffer Size
 ```
 ### Process Arguments
-Example: Execute the following command to pass Process Arguments: `java -jar SourceEngineQueryCacher-1.4.0.0.jar -bind 192.168.1.100 -port 27015`
+Example: Execute the following command to pass Process Arguments: `java -jar SourceEngineQueryCacher-1.5.0.jar -bind 192.168.1.100 -port 27015`
 ```
 -a,--receiveAllocatorBuf <arg>         Fixed Receive ByteBuf Allocator  Buffer Size
 -b,--bpsStats                          Enable Bits per Second Stats
