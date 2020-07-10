@@ -18,14 +18,14 @@ final class InfoHandler extends SimpleChannelInboundHandler<DatagramPacket> {
     protected void channelRead0(ChannelHandlerContext channelHandlerContext, DatagramPacket datagramPacket) {
 
         if (ByteBufUtil.equals(Packets.A2S_INFO_RESPONSE_HEADER, datagramPacket.content().slice(0, 5))) {
-            // Release the ByteBuf
+
+            // Release old Packet and set new
             Utils.safeRelease(CacheHub.A2S_INFO.get());
             CacheHub.A2S_INFO.set(datagramPacket.content().copy());
 
             logger.atDebug().log("New A2SInfo Update Cached Successfully");
         } else {
-            logger.atError().log("Received unsupported A2S Info Response from Game Server: {}",
-                    ByteBufUtil.hexDump(datagramPacket.content()));
+            logger.atError().log("Received unsupported A2S Info Response from Game Server: {}", ByteBufUtil.hexDump(datagramPacket.content()));
         }
     }
 }

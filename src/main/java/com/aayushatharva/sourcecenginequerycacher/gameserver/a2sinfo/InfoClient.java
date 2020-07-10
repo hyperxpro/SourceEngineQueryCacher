@@ -28,10 +28,11 @@ public final class InfoClient extends Thread {
     public void run() {
 
         try {
+
             Bootstrap bootstrap = new Bootstrap()
                     .group(Main.eventLoopGroup)
                     .channelFactory(() -> {
-                        if (Config.Transport.equalsIgnoreCase("epoll") && Epoll.isAvailable()) {
+                        if (Config.Transport.equalsIgnoreCase("epoll")) {
                             return new EpollDatagramChannel(InternetProtocolFamily.IPv4);
                         } else {
                             return new NioDatagramChannel(InternetProtocolFamily.IPv4);

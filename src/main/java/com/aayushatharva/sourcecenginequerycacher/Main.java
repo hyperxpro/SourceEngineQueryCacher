@@ -27,10 +27,9 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
 public final class Main {
-
-    public static final ByteBufAllocator BYTE_BUF_ALLOCATOR = PooledByteBufAllocator.DEFAULT;
     private static final Logger logger = LogManager.getLogger(Main.class);
 
+    public static final ByteBufAllocator BYTE_BUF_ALLOCATOR = PooledByteBufAllocator.DEFAULT;
     public static EventLoopGroup eventLoopGroup;
     private static Stats stats;
     private static CacheCleaner cacheCleaner;
@@ -49,19 +48,21 @@ public final class Main {
                 if (Epoll.isAvailable()) {
                     eventLoopGroup = new EpollEventLoopGroup(Config.Threads);
                 } else {
-                    // Epoll is selected but Epoll is not available then throw error.
-                    throw new IllegalArgumentException("Epoll Transport is not available");
+                    // Epoll is requested but Epoll is not available so we'll throw error and shut down.
+                    System.err.println("Epoll Transport is not available, shutting down...");
+                    System.exit(1);
                 }
             } else if (Config.Transport.equalsIgnoreCase("nio")) {
                 eventLoopGroup = new NioEventLoopGroup(Config.Threads);
             } else {
-                throw new IllegalArgumentException("Invalid Transport Type: " + Config.Transport);
+                System.err.println("Invalid Transport Type: " + Config.Transport + ", shutting down...");
+                System.exit(1);
             }
 
             Bootstrap bootstrap = new Bootstrap()
                     .group(eventLoopGroup)
                     .channelFactory(() -> {
-                        if (Config.Transport.equalsIgnoreCase("epoll") && Epoll.isAvailable()) {
+                        if (Config.Transport.equalsIgnoreCase("epoll")) {
                             return new EpollDatagramChannel(InternetProtocolFamily.IPv4);
                         } else {
                             return new NioDatagramChannel(InternetProtocolFamily.IPv4);

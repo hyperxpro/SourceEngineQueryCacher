@@ -31,6 +31,16 @@ final class Handler extends SimpleChannelInboundHandler<DatagramPacket> {
         }
 
         /*
+         * If A2S_INFO or A2S_PLAYER is null or 0 bytes, drop request because we've nothing to reply.
+         */
+        if (CacheHub.A2S_INFO.get() == null || CacheHub.A2S_INFO.get().readableBytes() == 0 ||
+                CacheHub.A2S_PLAYER.get() == null || CacheHub.A2S_PLAYER.get().readableBytes() == 0) {
+            logger.atError().log("Dropping query request because Cache is not ready. A2S_INFO: {}, A2S_PLAYER: {}",
+                    CacheHub.A2S_INFO.get(), CacheHub.A2S_PLAYER.get());
+            return;
+        }
+
+        /*
          * Packet size of 25 bytes and 9 bytes only will be processed rest will dropped.
          *
          * A2S_INFO = 25 Bytes

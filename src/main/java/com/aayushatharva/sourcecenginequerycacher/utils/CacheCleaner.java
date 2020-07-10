@@ -22,7 +22,7 @@ public final class CacheCleaner extends Thread {
                 // Wait before re-cleaning
                 sleep(Config.ChallengeCodeCacheCleanerInterval);
             } catch (InterruptedException e) {
-                logger.atError().withThrowable(e).log("Error at CacheCleaner During Interval Sleep");
+                logger.atError().withThrowable(e).log("Error at CacheCleaner During Sleep Interval");
                 break;
             }
 

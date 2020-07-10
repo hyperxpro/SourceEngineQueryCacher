@@ -30,8 +30,7 @@ final class PlayerHandler extends SimpleChannelInboundHandler<DatagramPacket> {
 
             logger.atDebug().log("New A2SPlayer Update Cached Successfully");
         } else {
-            logger.atError().log("Received unsupported A2S Player Response from Game Server: {}",
-                    ByteBufUtil.hexDump(datagramPacket.content()));
+            logger.atError().log("Received unsupported A2S Player Response from Game Server: {}", ByteBufUtil.hexDump(datagramPacket.content()));
         }
     }
 }
