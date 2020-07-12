@@ -25,7 +25,7 @@ public final class CacheHub {
     public static final Cache<String, String> CHALLENGE_CACHE = CacheBuilder.newBuilder()
             .maximumSize(Config.MaxChallengeCode)
             .expireAfterAccess(Duration.ofMillis(Config.ChallengeCodeTTL))
-            .expireAfterWrite(Duration.ofSeconds(Config.ChallengeCodeTTL))
+            .expireAfterWrite(Duration.ofMillis(Config.ChallengeCodeTTL))
             .concurrencyLevel(Config.ChallengeCodeCacheConcurrency)
             .build();
 }
