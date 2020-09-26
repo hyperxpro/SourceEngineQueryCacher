@@ -1,8 +1,6 @@
 package com.aayushatharva.sourcecenginequerycacher.gameserver.a2sinfo;
 
 import com.aayushatharva.sourcecenginequerycacher.utils.CacheHub;
-import com.aayushatharva.sourcecenginequerycacher.utils.Packets;
-import io.netty.buffer.ByteBufUtil;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.channel.socket.DatagramPacket;
@@ -15,14 +13,9 @@ final class InfoHandler extends SimpleChannelInboundHandler<DatagramPacket> {
 
     @Override
     protected void channelRead0(ChannelHandlerContext channelHandlerContext, DatagramPacket datagramPacket) {
+        // Set new Packet Data
+        CacheHub.A2S_INFO.clear().writeBytes(datagramPacket.content());
 
-        if (ByteBufUtil.equals(Packets.A2S_INFO_RESPONSE_HEADER, datagramPacket.content().slice(0, 5))) {
-            // Set new Packet Data
-            CacheHub.A2S_INFO.clear().writeBytes(datagramPacket.content());
-
-            logger.debug("New A2SInfo Update Cached Successfully");
-        } else {
-            logger.error("Received unsupported A2S Info Response from Game Server: {}", ByteBufUtil.hexDump(datagramPacket.content()));
-        }
+        logger.debug("New A2SInfo Update Cached Successfully");
     }
 }
