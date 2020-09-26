@@ -33,10 +33,10 @@ final class Handler extends SimpleChannelInboundHandler<DatagramPacket> {
         /*
          * If A2S_INFO or A2S_PLAYER is null or 0 bytes, drop request because we've nothing to reply.
          */
-        if (CacheHub.A2S_INFO.get() == null || CacheHub.A2S_INFO.get().readableBytes() == 0 ||
-                CacheHub.A2S_PLAYER.get() == null || CacheHub.A2S_PLAYER.get().readableBytes() == 0) {
-            logger.atError().log("Dropping query request because Cache is not ready. A2S_INFO: {}, A2S_PLAYER: {}",
-                    CacheHub.A2S_INFO.get(), CacheHub.A2S_PLAYER.get());
+        if (CacheHub.A2S_INFO == null || CacheHub.A2S_INFO.readableBytes() == 0 ||
+                CacheHub.A2S_PLAYER == null || CacheHub.A2S_PLAYER.readableBytes() == 0) {
+            logger.error("Dropping query request because Cache is not ready. A2S_INFO: {}, A2S_PLAYER: {}",
+                    CacheHub.A2S_INFO, CacheHub.A2S_PLAYER);
             return;
         }
 
@@ -50,15 +50,16 @@ final class Handler extends SimpleChannelInboundHandler<DatagramPacket> {
 
             // Log at Debug
             logger.atDebug().log("Received Packet of Length {} bytes from {}:{}",
-                    datagramPacket.content().readableBytes(), datagramPacket.sender().getAddress().getHostAddress(),
-                    datagramPacket.sender().getPort());
+                    datagramPacket.content().readableBytes(),
+                    datagramPacket.sender().getAddress().getHostAddress(), datagramPacket.sender().getPort());
 
             if (ByteBufUtil.equals(Packets.A2S_INFO_REQUEST, datagramPacket.content())) {
                 // Log the Packet
                 logger.atDebug().log("Sending A2S_INFO Packet to {}:{}",
                         datagramPacket.sender().getAddress().getHostAddress(), datagramPacket.sender().getPort());
 
-                ctx.writeAndFlush(new DatagramPacket(CacheHub.A2S_INFO.get().copy(), datagramPacket.sender()));
+                ctx.writeAndFlush(new DatagramPacket(CacheHub.A2S_INFO.retainedDuplicate(), datagramPacket.sender()));
+                return;
             } else if (ByteBufUtil.equals(Packets.A2S_PLAYER_REQUEST_HEADER, datagramPacket.content().slice(0, 5))) {
 
                 /*
@@ -73,12 +74,11 @@ final class Handler extends SimpleChannelInboundHandler<DatagramPacket> {
                 } else {
                     sendA2SPlayerResponse(ctx, datagramPacket, ByteBufUtil.getBytes(datagramPacket.content()));
                 }
-            } else {
-                dropLog(datagramPacket);
+                return;
             }
-        } else {
-            dropLog(datagramPacket);
         }
+
+        dropLog(datagramPacket);
     }
 
     private void sendA2SPlayerChallenge(ChannelHandlerContext ctx, DatagramPacket datagramPacket) {
@@ -90,12 +90,12 @@ final class Handler extends SimpleChannelInboundHandler<DatagramPacket> {
         CacheHub.CHALLENGE_CACHE.put(toHexString(challenge), datagramPacket.sender().getAddress().getHostAddress());
 
         // Log at Debug
-        logger.atDebug().log("Sending A2S_Challenge Player Packet to {}:{}",
-                datagramPacket.sender().getAddress().getHostAddress(), datagramPacket.sender().getPort());
+        logger.debug("Sending A2S_Challenge Player Packet to {}:{}", datagramPacket.sender().getAddress().getHostAddress(),
+                datagramPacket.sender().getPort());
 
         // Send A2S PLAYER CHALLENGE Packet
-        ByteBuf byteBuf = ctx.alloc().directBuffer();
-        byteBuf.writeBytes(Packets.A2S_PLAYER_CHALLENGE_RESPONSE.copy());
+        ByteBuf byteBuf = ctx.alloc().buffer();
+        byteBuf.writeBytes(Packets.A2S_PLAYER_CHALLENGE_RESPONSE.retainedDuplicate());
         byteBuf.writeBytes(challenge);
         ctx.writeAndFlush(new DatagramPacket(byteBuf, datagramPacket.sender()));
     }
@@ -114,7 +114,7 @@ final class Handler extends SimpleChannelInboundHandler<DatagramPacket> {
                 logger.atDebug().log("Sending A2S_PLAYER Packet to {}:{}",
                         datagramPacket.sender().getAddress().getHostAddress(), datagramPacket.sender().getPort());
 
-                ctx.writeAndFlush(new DatagramPacket(CacheHub.A2S_PLAYER.get().copy(), datagramPacket.sender()));
+                ctx.writeAndFlush(new DatagramPacket(CacheHub.A2S_PLAYER.retainedDuplicate(), datagramPacket.sender()));
             }
         } else {
             logger.atDebug().log("Invalid Challenge Code received from {}:{} [REQUEST DROPPED]",
@@ -129,7 +129,7 @@ final class Handler extends SimpleChannelInboundHandler<DatagramPacket> {
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
-        cause.printStackTrace();
+        logger.error("Caught Error", cause);
     }
 
     /**

@@ -10,6 +10,7 @@ import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.FixedRecvByteBufAllocator;
@@ -19,17 +20,20 @@ import io.netty.channel.epoll.EpollEventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.InternetProtocolFamily;
 import io.netty.channel.socket.nio.NioDatagramChannel;
+import io.netty.channel.unix.UnixChannelOption;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.net.InetSocketAddress;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
 public final class Main {
     private static final Logger logger = LogManager.getLogger(Main.class);
 
-    public static final ByteBufAllocator BYTE_BUF_ALLOCATOR = PooledByteBufAllocator.DEFAULT;
+    public static final ByteBufAllocator BYTE_BUF_ALLOCATOR = new PooledByteBufAllocator(true);
     public static EventLoopGroup eventLoopGroup;
     private static Stats stats;
     private static CacheCleaner cacheCleaner;
@@ -59,6 +63,8 @@ public final class Main {
                 System.exit(1);
             }
 
+            List<ChannelFuture> channelFutureList = new ArrayList<>();
+
             Bootstrap bootstrap = new Bootstrap()
                     .group(eventLoopGroup)
                     .channelFactory(() -> {
@@ -72,14 +78,31 @@ public final class Main {
                     .option(ChannelOption.SO_SNDBUF, Config.SendBufferSize)
                     .option(ChannelOption.SO_RCVBUF, Config.ReceiveBufferSize)
                     .option(ChannelOption.RCVBUF_ALLOCATOR, new FixedRecvByteBufAllocator(Config.FixedReceiveAllocatorBufferSize))
+                    .option(UnixChannelOption.SO_REUSEPORT, true)
                     .handler(new Handler());
 
-            // Bind and Start Server
-            ChannelFuture channelFuture = bootstrap.bind(Config.LocalServer.getAddress(), Config.LocalServer.getPort()).sync();
+            for (int i = 0; i < Config.Threads; i++) {
+                // Bind and Start Server
+                ChannelFuture channelFuture = bootstrap.bind(Config.LocalServer.getAddress(), Config.LocalServer.getPort())
+                        .addListener((ChannelFutureListener) future -> {
+                            if (future.isSuccess()) {
+                                logger.atInfo().log("Server Started on Address: {}:{}",
+                                        ((InetSocketAddress) future.channel().localAddress()).getAddress().getHostAddress(),
+                                        ((InetSocketAddress) future.channel().localAddress()).getPort());
+                            } else {
+                                logger.error("Caught Error While Starting Server", future.cause());
+                                System.err.println("Shutting down...");
+                                System.exit(1);
+                            }
+                        });
 
-            logger.atInfo().log("Server Started on Address: {}:{}",
-                    ((InetSocketAddress) channelFuture.channel().localAddress()).getAddress().getHostAddress(),
-                    ((InetSocketAddress) channelFuture.channel().localAddress()).getPort());
+                channelFutureList.add(channelFuture);
+            }
+
+            // Wait for all bind sockets to start
+            for (ChannelFuture channelFuture : channelFutureList) {
+                channelFuture.sync();
+            }
 
             stats = new Stats();
             cacheCleaner = new CacheCleaner();
@@ -90,9 +113,6 @@ public final class Main {
             cacheCleaner.start();
             infoClient.start();
             playerClient.start();
-
-            // Keep Running
-            channelFuture.syncUninterruptibly();
         } catch (Exception ex) {
             logger.atError().withThrowable(ex).log("Error while Initializing");
         }
@@ -108,14 +128,11 @@ public final class Main {
         CacheHub.CHALLENGE_CACHE.invalidateAll();
         CacheHub.CHALLENGE_CACHE.cleanUp();
 
-        Utils.safeRelease(CacheHub.A2S_INFO.get());
-        Utils.safeRelease(CacheHub.A2S_PLAYER.get());
+        Utils.safeRelease(CacheHub.A2S_INFO);
+        Utils.safeRelease(CacheHub.A2S_PLAYER);
 
         stats.shutdown();
         cacheCleaner.shutdown();
         future.get();
-
-        // Call GC to wipe out everything
-        System.gc();
     }
 }

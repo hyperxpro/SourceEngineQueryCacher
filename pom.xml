@@ -6,15 +6,17 @@
 
     <groupId>com.aayushatharva</groupId>
     <artifactId>SourceEngineQueryCacher</artifactId>
-    <version>1.5.1</version>
+    <version>1.6.0</version>
 
     <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <java.version>11</java.version>
         <maven.compiler.source>11</maven.compiler.source>
         <maven.compiler.target>11</maven.compiler.target>
 
         <!-- Version Management -->
-        <netty>4.1.51.Final</netty>
+        <netty>4.1.52.Final</netty>
         <guava>29.0-jre</guava>
         <commons_cli>1.4</commons_cli>
         <log4j2>2.13.3</log4j2>

@@ -8,7 +8,6 @@ import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.FixedRecvByteBufAllocator;
-import io.netty.channel.epoll.Epoll;
 import io.netty.channel.epoll.EpollDatagramChannel;
 import io.netty.channel.socket.DatagramPacket;
 import io.netty.channel.socket.InternetProtocolFamily;
@@ -45,11 +44,10 @@ public final class PlayerClient extends Thread {
                     .option(ChannelOption.RCVBUF_ALLOCATOR, new FixedRecvByteBufAllocator(Config.FixedReceiveAllocatorBufferSize))
                     .handler(new PlayerHandler());
 
-
             Channel channel = bootstrap.bind(0).sync().channel();
 
             while (keepRunning) {
-                channel.writeAndFlush(new DatagramPacket(Packets.A2S_PLAYER_CHALLENGE_REQUEST_2.copy(), Config.GameServer)).sync();
+                channel.writeAndFlush(new DatagramPacket(Packets.A2S_PLAYER_CHALLENGE_REQUEST_2.retainedDuplicate(), Config.GameServer)).sync();
                 sleep(Config.GameUpdateInterval);
             }
 
