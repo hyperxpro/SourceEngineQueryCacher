@@ -12,6 +12,8 @@
   </ol>
 </p>
 
+## Requirements:
+Java 11 and Linux Kernel 3.9+.
 
 ## How to run:
 1. Download and Install Java 11.
