@@ -18,7 +18,7 @@ Java 11 and Linux Kernel 3.9+.
 ## How to run:
 1. Download and Install Java 11.
 2. Download Source Engine Query Cacher Binary.
-3. Execute the following command: `java -jar SourceEngineQueryCacher-1.5.0.jar`
+3. Execute the following command: `java -jar SourceEngineQueryCacher-1.6.0.jar`
 4. Source Engine Query Cacher will start and display 'Server Started on Socket: IP:PORT'.
 5. Configure IPTables for routing Query Packets and everything is done.
 
