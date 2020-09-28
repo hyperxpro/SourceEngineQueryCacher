@@ -6,7 +6,7 @@ https://img.shields.io/github/downloads/hyperxpro/SourceEngineQueryCacher/total)
 <p> Features:
   <ol>
     <li> Built on top of Netty. </li>
-    <li> Uses Direct Buffers to minimuze memory copy and garbage creation in JVM. </li>
+    <li> Uses Direct Buffers to minimize memory copy and garbage creation in JVM. </li>
     <li> Truely Asynchronous. </li>
     <li> Supports native Epoll transport. </li>
     <li> In-Memory Cache for storing A2S_PLAYER challenge codes. </li>
