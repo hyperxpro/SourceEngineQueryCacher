@@ -10,27 +10,27 @@ import io.netty.channel.socket.DatagramPacket;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-final class PlayerHandler extends SimpleChannelInboundHandler<ByteBuf> {
+final class PlayerHandler extends SimpleChannelInboundHandler<DatagramPacket> {
 
     private static final Logger logger = LogManager.getLogger(PlayerHandler.class);
 
     @Override
-    protected void channelRead0(ChannelHandlerContext ctx, ByteBuf byteBuf) {
+    protected void channelRead0(ChannelHandlerContext ctx, DatagramPacket datagramPacket) {
 
-        if (ByteBufUtil.equals(Packets.A2S_PLAYER_CHALLENGE_RESPONSE, byteBuf.slice(0, 5))) {
+        if (ByteBufUtil.equals(Packets.A2S_PLAYER_CHALLENGE_RESPONSE, datagramPacket.content().slice(0, 5))) {
             ByteBuf responseBuf = ctx.alloc().buffer()
                     .writeBytes(Packets.A2S_PLAYER_REQUEST_HEADER.retainedDuplicate())
-                    .writeBytes(byteBuf.slice(5, 4));
+                    .writeBytes(datagramPacket.content().slice(5, 4));
 
             ctx.channel().writeAndFlush(responseBuf);
-        } else if (ByteBufUtil.equals(Packets.A2S_PLAYER_RESPONSE_HEADER, byteBuf.slice(0, 5))) {
+        } else if (ByteBufUtil.equals(Packets.A2S_PLAYER_RESPONSE_HEADER, datagramPacket.content().slice(0, 5))) {
             // Set new Packet Data
             CacheHub.A2S_PLAYER.clear();
-            CacheHub.A2S_PLAYER.writeBytes(byteBuf);
+            CacheHub.A2S_PLAYER.writeBytes(datagramPacket.content());
 
             logger.atDebug().log("New A2SPlayer Update Cached Successfully");
         } else {
-            logger.atError().log("Received unsupported A2S Player Response from Game Server: {}", ByteBufUtil.hexDump(byteBuf));
+            logger.atError().log("Received unsupported A2S Player Response from Game Server: {}", ByteBufUtil.hexDump(datagramPacket.content()));
         }
     }
 }
