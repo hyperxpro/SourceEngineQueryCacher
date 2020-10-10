@@ -8,7 +8,7 @@ https://img.shields.io/github/downloads/hyperxpro/SourceEngineQueryCacher/total)
     <li> Built on top of Netty. </li>
     <li> Uses Direct Buffers to minimize memory copy and garbage creation in JVM. </li>
     <li> Truely Asynchronous. </li>
-    <li> Supports native Epoll transport. </li>
+    <li> Uses native Epoll Transport. </li>
     <li> In-Memory Cache for storing A2S_PLAYER challenge codes. </li>
     <li> Multi-threaded with configurable thread count for maximum performance </li>
     <li> Highly configurable using Configuration file or Process arguments. </li>
@@ -35,7 +35,6 @@ iptables -t nat -A PREROUTING -p udp --dport 27015 --match string --algo kmp --h
 ### Configuration File
 Execute the following command to load configuration file: `java -jar SourceEngineQueryCacher-1.5.0.jar -c Config.conf`
 ```
-Transport: Set Transport to be used (Epoll or Nio)
 Threads: Number of Threads
 StatsPPS: Enable Packets per Second Stats
 StatsbPS: Enable Bits per Second Stats
@@ -73,6 +72,5 @@ Example: Execute the following command to pass Process Arguments: `java -jar Sou
 -port <arg>                            Local Server Port on which Cacher Server will bind and listen
 -r,--receiveBuf <arg>                  Server Receive Buffer Size
 -s,--sendBuf <arg>                     Server Send Buffer Size
--t,--transport <arg>                   Set Transport to be used [Epoll or Nio]
 -w,--threads <arg>                     Number of Threads
 ```
