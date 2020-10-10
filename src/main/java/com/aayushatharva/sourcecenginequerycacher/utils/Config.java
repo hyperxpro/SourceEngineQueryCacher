@@ -16,11 +16,6 @@ public final class Config {
     private static final Options options;
 
     /**
-     * Cacher Server Transport Type
-     */
-    public static String Transport = "Nio";
-
-    /**
      * Cacher Server Threads
      */
     public static Integer Threads = 2;
@@ -73,7 +68,6 @@ public final class Config {
                 /*General Configuration*/
                 .addOption("h", "help", false, "Display Usages")
                 .addOption("c", "config", true, "Configuration File Path")
-                .addOption("t", "transport", true, "Set Transport to be used [Epoll or Nio]")
                 .addOption("w", "threads", true, "Number of Threads")
                 .addOption("p", "ppsStats", false, "Enable Packets per Second Stats")
                 .addOption("b", "bpsStats", false, "Enable Bits per Second Stats")
@@ -118,10 +112,6 @@ public final class Config {
             // Parse Config File
             parseConfigFile(cmd.getOptionValue("config"));
         } else {
-
-            if (cmd.getOptionValue("transport") != null) {
-                Transport = cmd.getOptionValue("transport");
-            }
 
             if (cmd.getOptionValue("threads") != null) {
                 Threads = Integer.parseInt(cmd.getOptionValue("threads"));
@@ -206,7 +196,6 @@ public final class Config {
         Data.load(new FileInputStream(path));
 
         // Load all Data
-        Transport = Data.getProperty("Transport", Transport);
         Threads = Integer.parseInt(Data.getProperty("Threads", String.valueOf(Threads)));
         Stats_PPS = Boolean.parseBoolean(Data.getProperty("StatsPPS", String.valueOf(Stats_PPS)));
         Stats_bPS = Boolean.parseBoolean(Data.getProperty("StatsbPS", String.valueOf(Stats_PPS)));
@@ -238,7 +227,6 @@ public final class Config {
 
     private static void displayConfig() {
         logger.atDebug().log("----------------- CONFIGURATION -----------------");
-        logger.atDebug().log("Transport: " + Transport);
         logger.atDebug().log("Threads: " + Threads);
         logger.atDebug().log("PPS: " + Stats_PPS);
         logger.atDebug().log("bPS: " + Stats_bPS);

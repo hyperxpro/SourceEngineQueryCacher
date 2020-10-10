@@ -9,17 +9,15 @@ import com.aayushatharva.sourcecenginequerycacher.utils.Utils;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.PooledByteBufAllocator;
+import io.netty.channel.AdaptiveRecvByteBufAllocator;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
-import io.netty.channel.FixedRecvByteBufAllocator;
 import io.netty.channel.epoll.Epoll;
 import io.netty.channel.epoll.EpollDatagramChannel;
 import io.netty.channel.epoll.EpollEventLoopGroup;
-import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.InternetProtocolFamily;
-import io.netty.channel.socket.nio.NioDatagramChannel;
 import io.netty.channel.unix.UnixChannelOption;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -33,7 +31,7 @@ import java.util.concurrent.Future;
 public final class Main {
     private static final Logger logger = LogManager.getLogger(Main.class);
 
-    public static final ByteBufAllocator BYTE_BUF_ALLOCATOR = new PooledByteBufAllocator(true);
+    public static final ByteBufAllocator BYTE_BUF_ALLOCATOR = PooledByteBufAllocator.DEFAULT;
     public static EventLoopGroup eventLoopGroup;
     private static Stats stats;
     private static CacheCleaner cacheCleaner;
@@ -48,18 +46,11 @@ public final class Main {
             Config.setup(args);
 
             // Use Epoll when available
-            if (Config.Transport.equalsIgnoreCase("epoll")) {
-                if (Epoll.isAvailable()) {
-                    eventLoopGroup = new EpollEventLoopGroup(Config.Threads);
-                } else {
-                    // Epoll is requested but Epoll is not available so we'll throw error and shut down.
-                    System.err.println("Epoll Transport is not available, shutting down...");
-                    System.exit(1);
-                }
-            } else if (Config.Transport.equalsIgnoreCase("nio")) {
-                eventLoopGroup = new NioEventLoopGroup(Config.Threads);
+            if (Epoll.isAvailable()) {
+                eventLoopGroup = new EpollEventLoopGroup(Config.Threads);
             } else {
-                System.err.println("Invalid Transport Type: " + Config.Transport + ", shutting down...");
+                // Epoll is requested but Epoll is not available so we'll throw error and shut down.
+                System.err.println("Epoll Transport is not available, shutting down...");
                 System.exit(1);
             }
 
@@ -67,34 +58,27 @@ public final class Main {
 
             Bootstrap bootstrap = new Bootstrap()
                     .group(eventLoopGroup)
-                    .channelFactory(() -> {
-                        if (Config.Transport.equalsIgnoreCase("epoll")) {
-                            return new EpollDatagramChannel(InternetProtocolFamily.IPv4);
-                        } else {
-                            return new NioDatagramChannel(InternetProtocolFamily.IPv4);
-                        }
-                    })
+                    .channelFactory(() -> new EpollDatagramChannel(InternetProtocolFamily.IPv4))
                     .option(ChannelOption.ALLOCATOR, BYTE_BUF_ALLOCATOR)
                     .option(ChannelOption.SO_SNDBUF, Config.SendBufferSize)
                     .option(ChannelOption.SO_RCVBUF, Config.ReceiveBufferSize)
-                    .option(ChannelOption.RCVBUF_ALLOCATOR, new FixedRecvByteBufAllocator(Config.FixedReceiveAllocatorBufferSize))
+                    .option(ChannelOption.RCVBUF_ALLOCATOR, new AdaptiveRecvByteBufAllocator())
                     .option(UnixChannelOption.SO_REUSEPORT, true)
                     .handler(new Handler());
 
             for (int i = 0; i < Config.Threads; i++) {
                 // Bind and Start Server
-                ChannelFuture channelFuture = bootstrap.bind(Config.LocalServer.getAddress(), Config.LocalServer.getPort())
-                        .addListener((ChannelFutureListener) future -> {
-                            if (future.isSuccess()) {
-                                logger.atInfo().log("Server Started on Address: {}:{}",
-                                        ((InetSocketAddress) future.channel().localAddress()).getAddress().getHostAddress(),
-                                        ((InetSocketAddress) future.channel().localAddress()).getPort());
-                            } else {
-                                logger.error("Caught Error While Starting Server", future.cause());
-                                System.err.println("Shutting down...");
-                                System.exit(1);
-                            }
-                        });
+                ChannelFuture channelFuture = bootstrap.bind(Config.LocalServer.getAddress(), Config.LocalServer.getPort()).addListener((ChannelFutureListener) future -> {
+                    if (future.isSuccess()) {
+                        logger.atInfo().log("Server Started on Address: {}:{}",
+                                ((InetSocketAddress) future.channel().localAddress()).getAddress().getHostAddress(),
+                                ((InetSocketAddress) future.channel().localAddress()).getPort());
+                    } else {
+                        logger.error("Caught Error While Starting Server", future.cause());
+                        System.err.println("Shutting down...");
+                        System.exit(1);
+                    }
+                });
 
                 channelFutureList.add(channelFuture);
             }
