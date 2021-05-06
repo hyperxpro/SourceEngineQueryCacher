@@ -22,15 +22,14 @@ final class PlayerHandler extends SimpleChannelInboundHandler<DatagramPacket> {
                     .writeBytes(Packets.A2S_PLAYER_REQUEST_HEADER.retainedDuplicate())
                     .writeBytes(datagramPacket.content().slice(5, 4));
 
-            ctx.channel().writeAndFlush(responseBuf);
+            ctx.writeAndFlush(responseBuf);
         } else if (ByteBufUtil.equals(Packets.A2S_PLAYER_RESPONSE_HEADER, datagramPacket.content().slice(0, 5))) {
             // Set new Packet Data
-            CacheHub.A2S_PLAYER.clear();
-            CacheHub.A2S_PLAYER.writeBytes(datagramPacket.content());
+            CacheHub.A2S_PLAYER.clear().writeBytes(datagramPacket.content());
 
-            logger.atDebug().log("New A2SPlayer Update Cached Successfully");
+            logger.debug("New A2SPlayer Update Cached Successfully");
         } else {
-            logger.atError().log("Received unsupported A2S Player Response from Game Server: {}", ByteBufUtil.hexDump(datagramPacket.content()));
+            logger.error("Received unsupported A2S Player Response from Game Server: {}", ByteBufUtil.hexDump(datagramPacket.content()));
         }
     }
 }

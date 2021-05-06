@@ -14,8 +14,7 @@ final class InfoHandler extends SimpleChannelInboundHandler<DatagramPacket> {
     @Override
     protected void channelRead0(ChannelHandlerContext channelHandlerContext, DatagramPacket datagramPacket) {
         // Set new Packet Data
-        CacheHub.A2S_INFO.clear();
-        CacheHub.A2S_INFO.writeBytes(datagramPacket.content());
+        CacheHub.A2S_INFO.clear().writeBytes(datagramPacket.content());
 
         logger.debug("New A2SInfo Update Cached Successfully");
     }
