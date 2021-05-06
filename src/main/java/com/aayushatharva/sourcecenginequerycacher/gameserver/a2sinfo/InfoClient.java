@@ -22,9 +22,7 @@ public final class InfoClient extends Thread {
 
     @SuppressWarnings("BusyWait")
     public void run() {
-
         try {
-
             Bootstrap bootstrap = new Bootstrap()
                     .group(Main.eventLoopGroup)
                     .channelFactory(EpollDatagramChannel::new)

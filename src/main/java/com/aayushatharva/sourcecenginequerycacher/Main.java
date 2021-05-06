@@ -15,6 +15,7 @@ import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.epoll.Epoll;
+import io.netty.channel.epoll.EpollChannelOption;
 import io.netty.channel.epoll.EpollDatagramChannel;
 import io.netty.channel.epoll.EpollEventLoopGroup;
 import io.netty.channel.socket.InternetProtocolFamily;
@@ -64,13 +65,14 @@ public final class Main {
                     .option(ChannelOption.SO_RCVBUF, Config.ReceiveBufferSize)
                     .option(ChannelOption.RCVBUF_ALLOCATOR, new AdaptiveRecvByteBufAllocator())
                     .option(UnixChannelOption.SO_REUSEPORT, true)
+                    .option(EpollChannelOption.UDP_GRO, true) // Enable UDP GRO
                     .handler(new Handler());
 
             for (int i = 0; i < Config.Threads; i++) {
                 // Bind and Start Server
                 ChannelFuture channelFuture = bootstrap.bind(Config.LocalServer.getAddress(), Config.LocalServer.getPort()).addListener((ChannelFutureListener) future -> {
                     if (future.isSuccess()) {
-                        logger.atInfo().log("Server Started on Address: {}:{}",
+                        logger.info("Server Started on Address: {}:{}",
                                 ((InetSocketAddress) future.channel().localAddress()).getAddress().getHostAddress(),
                                 ((InetSocketAddress) future.channel().localAddress()).getPort());
                     } else {

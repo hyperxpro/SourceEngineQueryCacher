@@ -21,27 +21,29 @@ final class Stats extends Thread {
     @Override
     public void run() {
 
-        logger.atInfo().log("Starting Stats, PPS Enabled: " + Config.Stats_PPS + ", bPS Enabled: " + Config.Stats_bPS);
+        logger.info("Starting Stats, PPS Enabled: " + Config.Stats_PPS + ", bPS Enabled: " + Config.Stats_bPS);
 
         while (keepRunning) {
 
+            String timestamp = getTimestamp();
+
             if (Config.Stats_PPS && Config.Stats_bPS) {
-                System.out.print("[" + getTimestamp() + "] [STATS] PPS: " + PPS.getAndSet(0L));
-                System.out.println(" | bPS: " + calculateBps());
+                System.out.print("[" + timestamp + "] [STATS] p/s: " + PPS.getAndSet(0L));
+                System.out.println(" | b/s: " + calculateBps());
             } else {
                 if (Config.Stats_PPS) {
-                    System.out.println("[" + getTimestamp() + "] [STATS] PPS: " + PPS.getAndSet(0L) + " | bPS: 0");
+                    System.out.println("[" + timestamp + "] [STATS] p/s: " + PPS.getAndSet(0L) + " | b/s: 0");
                 }
 
                 if (Config.Stats_bPS) {
-                    System.out.println("[" + getTimestamp() + "] [STATS] PPS: 0 | bPS: " + calculateBps());
+                    System.out.println("[" + timestamp + "] [STATS] p/s: 0 | b/s: " + calculateBps());
                 }
             }
 
             try {
                 sleep(1000L);
             } catch (InterruptedException e) {
-                logger.atError().withThrowable(e).log("Error at Stats During Interval Sleep");
+                logger.error("Error at Stats During Interval Sleep", e);
                 return;
             }
 
@@ -65,7 +67,7 @@ final class Stats extends Thread {
     }
 
     public void shutdown() {
-        this.interrupt();
+        interrupt();
         keepRunning = false;
     }
 }

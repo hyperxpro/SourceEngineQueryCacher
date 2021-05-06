@@ -14,22 +14,22 @@ import org.apache.logging.log4j.Logger;
 
 import java.util.Arrays;
 import java.util.Random;
+import java.util.SplittableRandom;
 
 @ChannelHandler.Sharable
 final class Handler extends SimpleChannelInboundHandler<DatagramPacket> {
 
     private static final Logger logger = LogManager.getLogger(Handler.class);
+    private static final SplittableRandom RANDOM = new SplittableRandom();
 
     protected void channelRead0(ChannelHandlerContext ctx, DatagramPacket datagramPacket) {
 
         if (Config.Stats_PPS) {
             Stats.PPS.incrementAndGet();
-            logger.atDebug().log("Incrementing PPS count by 1 Packet");
         }
 
         if (Config.Stats_bPS) {
             Stats.BPS.addAndGet(datagramPacket.content().readableBytes());
-            logger.atDebug().log("Incrementing bPS count by {} Bytes", datagramPacket.content().readableBytes());
         }
 
         /*
@@ -49,17 +49,7 @@ final class Handler extends SimpleChannelInboundHandler<DatagramPacket> {
          * A2S_Player = 9 Bytes
          */
         if (datagramPacket.content().readableBytes() == 25 || datagramPacket.content().readableBytes() == 9) {
-
-            // Log at Debug
-            logger.atDebug().log("Received Packet of Length {} bytes from {}:{}",
-                    datagramPacket.content().readableBytes(),
-                    datagramPacket.sender().getAddress().getHostAddress(), datagramPacket.sender().getPort());
-
             if (ByteBufUtil.equals(Packets.A2S_INFO_REQUEST, datagramPacket.content())) {
-                // Log the Packet
-                logger.atDebug().log("Sending A2S_INFO Packet to {}:{}",
-                        datagramPacket.sender().getAddress().getHostAddress(), datagramPacket.sender().getPort());
-
                 ctx.writeAndFlush(new DatagramPacket(CacheHub.A2S_INFO.retainedDuplicate(), datagramPacket.sender()));
                 return;
             } else if (ByteBufUtil.equals(Packets.A2S_PLAYER_REQUEST_HEADER, datagramPacket.content().slice(0, 5))) {
@@ -86,14 +76,10 @@ final class Handler extends SimpleChannelInboundHandler<DatagramPacket> {
     private void sendA2SPlayerChallenge(ChannelHandlerContext ctx, DatagramPacket datagramPacket) {
         // Generate Random Data of 4 Bytes
         byte[] challenge = new byte[4];
-        new Random(4L).nextBytes(challenge);
+        RANDOM.nextBytes(challenge);
 
         // Add Challenge to Cache
         CacheHub.CHALLENGE_CACHE.put(toHexString(challenge), datagramPacket.sender().getAddress().getHostAddress());
-
-        // Log at Debug
-        logger.debug("Sending A2S_Challenge Player Packet to {}:{}", datagramPacket.sender().getAddress().getHostAddress(),
-                datagramPacket.sender().getPort());
 
         // Send A2S PLAYER CHALLENGE Packet
         ByteBuf byteBuf = ctx.alloc().buffer();
@@ -113,19 +99,16 @@ final class Handler extends SimpleChannelInboundHandler<DatagramPacket> {
 
             // Match Client Current IP Address against Cache Stored Client IP Address
             if (ipAddressOfClient.equals(datagramPacket.sender().getAddress().getHostAddress())) {
-                logger.atDebug().log("Sending A2S_PLAYER Packet to {}:{}",
-                        datagramPacket.sender().getAddress().getHostAddress(), datagramPacket.sender().getPort());
-
                 ctx.writeAndFlush(new DatagramPacket(CacheHub.A2S_PLAYER.retainedDuplicate(), datagramPacket.sender()));
             }
         } else {
-            logger.atDebug().log("Invalid Challenge Code received from {}:{} [REQUEST DROPPED]",
+            logger.debug("Invalid Challenge Code received from {}:{} [REQUEST DROPPED]",
                     datagramPacket.sender().getAddress().getHostAddress(), datagramPacket.sender().getPort());
         }
     }
 
     private void dropLog(DatagramPacket datagramPacket) {
-        logger.atDebug().log("Dropping Packet of Length {} bytes from {}:{}", datagramPacket.content().readableBytes(),
+        logger.debug("Dropping Packet of Length {} bytes from {}:{}", datagramPacket.content().readableBytes(),
                 datagramPacket.sender().getAddress().getHostAddress(), datagramPacket.sender().getPort());
     }
 
