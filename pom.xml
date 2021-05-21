@@ -16,7 +16,7 @@
         <maven.compiler.target>11</maven.compiler.target>
 
         <!-- Version Management -->
-        <netty>4.1.63.Final</netty>
+        <netty>4.1.65.Final</netty>
         <guava>30.1.1-jre</guava>
         <commons_cli>1.4</commons_cli>
         <log4j2>2.13.3</log4j2>
