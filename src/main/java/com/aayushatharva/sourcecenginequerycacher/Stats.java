@@ -29,14 +29,17 @@ final class Stats extends Thread {
 
             if (Config.Stats_PPS && Config.Stats_bPS) {
                 System.out.print("[" + timestamp + "] [STATS] p/s: " + PPS.getAndSet(0L));
-                System.out.println(" | b/s: " + calculateBps());
+                System.out.print(" | b/s: " + calculateBps());
+                System.out.print("\r");
             } else {
                 if (Config.Stats_PPS) {
-                    System.out.println("[" + timestamp + "] [STATS] p/s: " + PPS.getAndSet(0L) + " | b/s: 0");
+                    System.out.print("[" + timestamp + "] [STATS] p/s: " + PPS.getAndSet(0L) + " | b/s: 0");
+                    System.out.print("\r");
                 }
 
                 if (Config.Stats_bPS) {
-                    System.out.println("[" + timestamp + "] [STATS] p/s: 0 | b/s: " + calculateBps());
+                    System.out.print("[" + timestamp + "] [STATS] p/s: 0 | b/s: " + calculateBps());
+                    System.out.print("\r");
                 }
             }
 

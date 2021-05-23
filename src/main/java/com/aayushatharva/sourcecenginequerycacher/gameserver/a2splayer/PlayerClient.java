@@ -5,6 +5,7 @@ import com.aayushatharva.sourcecenginequerycacher.gameserver.a2sinfo.InfoClient;
 import com.aayushatharva.sourcecenginequerycacher.utils.Config;
 import com.aayushatharva.sourcecenginequerycacher.utils.Packets;
 import io.netty.bootstrap.Bootstrap;
+import io.netty.channel.AdaptiveRecvByteBufAllocator;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.FixedRecvByteBufAllocator;
@@ -32,7 +33,7 @@ public final class PlayerClient extends Thread {
                     .option(ChannelOption.ALLOCATOR, Main.BYTE_BUF_ALLOCATOR)
                     .option(ChannelOption.SO_SNDBUF, Config.SendBufferSize)
                     .option(ChannelOption.SO_RCVBUF, Config.ReceiveBufferSize)
-                    .option(ChannelOption.RCVBUF_ALLOCATOR, new FixedRecvByteBufAllocator(Config.FixedReceiveAllocatorBufferSize))
+                    .option(ChannelOption.RCVBUF_ALLOCATOR, new AdaptiveRecvByteBufAllocator())
                     .handler(new PlayerHandler());
 
             Channel channel = bootstrap.connect(Config.GameServer).sync().channel();

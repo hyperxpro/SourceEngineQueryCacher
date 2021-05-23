@@ -57,7 +57,6 @@ public final class Config {
     // Buffers
     public static Integer ReceiveBufferSize = 65535;
     public static Integer SendBufferSize = 65535;
-    public static Integer FixedReceiveAllocatorBufferSize = 65535;
 
     // Stats
     public static boolean Stats_PPS = false;
@@ -180,15 +179,9 @@ public final class Config {
             if (cmd.getOptionValue("sendBuf") != null) {
                 SendBufferSize = Integer.parseInt(cmd.getOptionValue("sendBuf"));
             }
-
-            if (cmd.getOptionValue("receiveAllocatorBuf") != null) {
-                FixedReceiveAllocatorBufferSize = Integer.parseInt(cmd.getOptionValue("receiveAllocatorBuf"));
-            }
         }
 
-        if (logger.isDebugEnabled()) {
-            displayConfig();
-        }
+        displayConfig();
     }
 
     private static void parseConfigFile(String path) throws IOException {
@@ -219,35 +212,31 @@ public final class Config {
 
         ReceiveBufferSize = Integer.parseInt(Data.getProperty("ReceiveBufferSize", String.valueOf(ReceiveBufferSize)));
         SendBufferSize = Integer.parseInt(Data.getProperty("SendBufferSize", String.valueOf(SendBufferSize)));
-        FixedReceiveAllocatorBufferSize = Integer.parseInt(Data.getProperty("FixedReceiveAllocatorBufferSize",
-                String.valueOf(FixedReceiveAllocatorBufferSize)));
 
         Data.clear(); // Clear Properties
     }
 
     private static void displayConfig() {
-        logger.atDebug().log("----------------- CONFIGURATION -----------------");
-        logger.atDebug().log("Threads: " + Threads);
-        logger.atDebug().log("PPS: " + Stats_PPS);
-        logger.atDebug().log("bPS: " + Stats_bPS);
+        logger.info("----------------- CONFIGURATION -----------------");
+        logger.info("Threads: " + Threads);
+        logger.info("PPS: " + Stats_PPS);
+        logger.info("bPS: " + Stats_bPS);
 
+        logger.info("GameUpdateInterval: " + GameUpdateInterval);
+        logger.info("GameUpdateSocketTimeout: " + GameUpdateSocketTimeout);
 
-        logger.atDebug().log("GameUpdateInterval: " + GameUpdateInterval);
-        logger.atDebug().log("GameUpdateSocketTimeout: " + GameUpdateSocketTimeout);
+        logger.info("MaxChallengeCode: " + MaxChallengeCode);
+        logger.info("ChallengeCodeCacheCleanerInterval: " + ChallengeCodeCacheCleanerInterval);
+        logger.info("ChallengeCodeCacheConcurrency: " + ChallengeCodeCacheConcurrency);
 
-        logger.atDebug().log("MaxChallengeCode: " + MaxChallengeCode);
-        logger.atDebug().log("ChallengeCodeCacheCleanerInterval: " + ChallengeCodeCacheCleanerInterval);
-        logger.atDebug().log("ChallengeCodeCacheConcurrency: " + ChallengeCodeCacheConcurrency);
+        logger.info("LocalServerIPAddress: " + LocalServer.getAddress().getHostAddress());
+        logger.info("LocalServerPort: " + LocalServer.getPort());
+        logger.info("GameServerIPAddress: " + GameServer.getAddress().getHostAddress());
+        logger.info("GameServerPort: " + GameServer.getPort());
 
-        logger.atDebug().log("LocalServerIPAddress: " + LocalServer.getAddress().getHostAddress());
-        logger.atDebug().log("LocalServerPort: " + LocalServer.getPort());
-        logger.atDebug().log("GameServerIPAddress: " + GameServer.getAddress().getHostAddress());
-        logger.atDebug().log("GameServerPort: " + GameServer.getPort());
-
-        logger.atDebug().log("ReceiveBufferSize: " + ReceiveBufferSize);
-        logger.atDebug().log("SendBufferSize: " + SendBufferSize);
-        logger.atDebug().log("FixedReceiveAllocatorBufferSize: " + FixedReceiveAllocatorBufferSize);
-        logger.atDebug().log("-------------------------------------------------");
+        logger.info("ReceiveBufferSize: " + ReceiveBufferSize);
+        logger.info("SendBufferSize: " + SendBufferSize);
+        logger.info("-------------------------------------------------");
     }
 
     private static void displayHelpAndExit() {
