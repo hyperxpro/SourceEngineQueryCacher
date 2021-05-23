@@ -21,7 +21,7 @@ Java 11 and Linux Kernel 3.9+.
 ## How to run:
 1. Download and Install Java 11.
 2. Download Source Engine Query Cacher Binary.
-3. Execute the following command: `java -jar SourceEngineQueryCacher-1.6.4.jar`
+3. Execute the following command: `java -jar SourceEngineQueryCacher-1.6.5.jar`
 4. Source Engine Query Cacher will start and display 'Server Started on Socket: IP:PORT'.
 5. Configure IPTables for routing Query Packets and everything is done.
 
@@ -33,7 +33,7 @@ iptables -t nat -A PREROUTING -p udp --dport 27015 --match string --algo kmp --h
 ```
 ## Configuration
 ### Configuration File
-Execute the following command to load configuration file: `java -jar SourceEngineQueryCacher-1.6.4.jar -c Config.conf`
+Execute the following command to load configuration file: `java -jar SourceEngineQueryCacher-1.6.5.jar -c Config.conf`
 ```
 Threads: Number of Threads
 StatsPPS: Enable Packets per Second Stats
@@ -50,12 +50,10 @@ GameServerIPAddress: Game Server IP Address
 GameServerPort: Game Server Port
 ReceiveBufferSize: Server Receive Buffer Size
 SendBufferSize: Server Send Buffer Size
-FixedReceiveAllocatorBufferSize: Fixed Receive ByteBuf Allocator Buffer Size
 ```
 ### Process Arguments
-Example: Execute the following command to pass Process Arguments: `java -jar SourceEngineQueryCacher-1.6.4.jar -bind 192.168.1.100 -port 27015`
+Example: Execute the following command to pass Process Arguments: `java -jar SourceEngineQueryCacher-1.6.5.jar -bind 192.168.1.100 -port 27015`
 ```
--a,--receiveAllocatorBuf <arg>         Fixed Receive ByteBuf Allocator  Buffer Size
 -b,--bpsStats                          Enable Bits per Second Stats
 -bind <arg>                            Local Server IP Address on which Cacher Server will bind and listen
 -c,--config <arg>                      Configuration File Path
