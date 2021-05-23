@@ -19,7 +19,7 @@ https://img.shields.io/github/downloads/hyperxpro/SourceEngineQueryCacher/total)
 Java 11 and Linux Kernel 3.9+.
 
 ## How to run:
-1. Download and Install Java 11.
+1. [Download](https://docs.aws.amazon.com/corretto/latest/corretto-11-ug/what-is-corretto-11.html) and Install Java 11.
 2. Download Source Engine Query Cacher Binary.
 3. Execute the following command: `java -jar SourceEngineQueryCacher-1.6.5.jar`
 4. Source Engine Query Cacher will start and display 'Server Started on Socket: IP:PORT'.
