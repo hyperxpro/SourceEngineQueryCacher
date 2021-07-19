@@ -1,11 +1,12 @@
 package com.aayushatharva.sourcecenginequerycacher.utils;
 
 import com.aayushatharva.sourcecenginequerycacher.Main;
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
+import com.shieldblaze.expressgateway.common.map.SelfExpiringMap;
 import io.netty.buffer.ByteBuf;
 
 import java.time.Duration;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public final class CacheHub {
 
@@ -20,11 +21,9 @@ public final class CacheHub {
     public static final ByteBuf A2S_PLAYER = Main.BYTE_BUF_ALLOCATOR.buffer();
 
     /**
-     * Challenge Code Cache
+     * Challenge Code Map
      */
-    public static final Cache<String, String> CHALLENGE_CACHE = CacheBuilder.newBuilder()
-            .maximumSize(Config.MaxChallengeCode)
-            .expireAfterWrite(Duration.ofMillis(Config.ChallengeCodeTTL))
-            .concurrencyLevel(Config.ChallengeCodeCacheConcurrency)
-            .build();
+    public static final Map<String, String> CHALLENGE_MAP = new SelfExpiringMap<>(new ConcurrentHashMap<>(),
+            Duration.ofMillis(Config.ChallengeCodeTTL),
+            false);
 }

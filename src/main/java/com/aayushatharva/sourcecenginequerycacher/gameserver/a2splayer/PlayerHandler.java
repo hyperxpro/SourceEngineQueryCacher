@@ -22,7 +22,7 @@ final class PlayerHandler extends SimpleChannelInboundHandler<DatagramPacket> {
                     .writeBytes(Packets.A2S_PLAYER_REQUEST_HEADER.retainedDuplicate())
                     .writeBytes(datagramPacket.content().slice(5, 4));
 
-            ctx.writeAndFlush(responseBuf);
+            ctx.writeAndFlush(responseBuf, ctx.voidPromise());
         } else if (ByteBufUtil.equals(Packets.A2S_PLAYER_RESPONSE_HEADER, datagramPacket.content().slice(0, 5))) {
             // Set new Packet Data
             CacheHub.A2S_PLAYER.clear().writeBytes(datagramPacket.content());

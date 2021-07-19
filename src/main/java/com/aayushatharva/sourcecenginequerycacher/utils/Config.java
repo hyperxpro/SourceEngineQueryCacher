@@ -1,6 +1,11 @@
 package com.aayushatharva.sourcecenginequerycacher.utils;
 
-import org.apache.commons.cli.*;
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.DefaultParser;
+import org.apache.commons.cli.HelpFormatter;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -31,24 +36,9 @@ public final class Config {
     public static Integer GameUpdateSocketTimeout = 1000;
 
     /**
-     * Maximum Challenge Code in Cache
-     */
-    public static Long MaxChallengeCode = 100000L;
-
-    /**
-     * Challenge Code Cache Cleaner Interval
-     */
-    public static Long ChallengeCodeCacheCleanerInterval = 1000L;
-
-    /**
      * Challenge Code Validity
      */
     public static Long ChallengeCodeTTL = 5000L;
-
-    /**
-     * Challenge Code Cache Concurrency
-     */
-    public static int ChallengeCodeCacheConcurrency = 8;
 
     // IP Addresses and Ports
     public static InetSocketAddress LocalServer = new InetSocketAddress(InetAddress.getLoopbackAddress(), 27016);
@@ -76,10 +66,7 @@ public final class Config {
                 .addOption("gameUpdateTimeout", true, "Game Server Update Socket Timeout in Milliseconds")
 
                 /* Challenge Code */
-                .addOption("maxChallengeCode", true, "Maximum Challenge Codes to be saved")
-                .addOption("challengeCodeCacheCleaner", true, "Challenge Code Cache Cleaner Interval in Milliseconds")
                 .addOption("challengeCodeTTL", true, "Maximum Validity of Challenge Code in Milliseconds")
-                .addOption("challengeCodeCacheConcurrency", true, "Challenge Code Cache Concurrency")
 
                 /* IP Addresses and Ports */
                 .addOption("gameip", true, "Game Server IP Address")
@@ -132,20 +119,8 @@ public final class Config {
                 GameUpdateSocketTimeout = Integer.parseInt(cmd.getOptionValue("gameUpdateTimeout"));
             }
 
-            if (cmd.getOptionValue("maxChallengeCode") != null) {
-                MaxChallengeCode = Long.parseLong(cmd.getOptionValue("maxChallengeCode"));
-            }
-
-            if (cmd.getOptionValue("challengeCodeCacheCleaner") != null) {
-                ChallengeCodeCacheCleanerInterval = Long.parseLong(cmd.getOptionValue("challengeCacheCleaner"));
-            }
-
             if (cmd.getOptionValue("challengeCodeTTL") != null) {
                 ChallengeCodeTTL = Long.parseLong(cmd.getOptionValue("challengeCodeTTL"));
-            }
-
-            if (cmd.getOptionValue("challengeCodeCacheConcurrency") != null) {
-                ChallengeCodeCacheCleanerInterval = Long.parseLong(cmd.getOptionValue("challengeCodeCacheConcurrency"));
             }
 
             InetAddress GameServerIPAddress = InetAddress.getLoopbackAddress();
@@ -196,12 +171,7 @@ public final class Config {
         GameUpdateInterval = Long.parseLong(Data.getProperty("GameUpdateInterval", String.valueOf(GameUpdateInterval)));
         GameUpdateSocketTimeout = Integer.parseInt(Data.getProperty("GameUpdateSocketTimeout", String.valueOf(GameUpdateSocketTimeout)));
 
-        MaxChallengeCode = Long.parseLong(Data.getProperty("MaxChallengeCode", String.valueOf(MaxChallengeCode)));
-        ChallengeCodeCacheCleanerInterval = Long.parseLong(Data.getProperty("ChallengeCacheCleanerInterval",
-                String.valueOf(ChallengeCodeCacheCleanerInterval)));
         ChallengeCodeTTL = Long.parseLong(Data.getProperty("ChallengeCodeTTL", String.valueOf(ChallengeCodeTTL)));
-        ChallengeCodeCacheConcurrency = Integer.parseInt(Data.getProperty("ChallengeCacheConcurrency",
-                String.valueOf(ChallengeCodeCacheConcurrency)));
 
         LocalServer = new InetSocketAddress(InetAddress.getByName(Data.getProperty("LocalServerIPAddress",
                 InetAddress.getLoopbackAddress().getHostAddress())), Integer.parseInt(Data.getProperty("LocalServerPort",
@@ -225,9 +195,7 @@ public final class Config {
         logger.info("GameUpdateInterval: " + GameUpdateInterval);
         logger.info("GameUpdateSocketTimeout: " + GameUpdateSocketTimeout);
 
-        logger.info("MaxChallengeCode: " + MaxChallengeCode);
-        logger.info("ChallengeCodeCacheCleanerInterval: " + ChallengeCodeCacheCleanerInterval);
-        logger.info("ChallengeCodeCacheConcurrency: " + ChallengeCodeCacheConcurrency);
+        logger.info("ChallengeCodeTTL: " + ChallengeCodeTTL);
 
         logger.info("LocalServerIPAddress: " + LocalServer.getAddress().getHostAddress());
         logger.info("LocalServerPort: " + LocalServer.getPort());

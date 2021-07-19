@@ -2,7 +2,6 @@ package com.aayushatharva.sourcecenginequerycacher;
 
 import com.aayushatharva.sourcecenginequerycacher.gameserver.a2sinfo.InfoClient;
 import com.aayushatharva.sourcecenginequerycacher.gameserver.a2splayer.PlayerClient;
-import com.aayushatharva.sourcecenginequerycacher.utils.CacheCleaner;
 import com.aayushatharva.sourcecenginequerycacher.utils.CacheHub;
 import com.aayushatharva.sourcecenginequerycacher.utils.Config;
 import com.aayushatharva.sourcecenginequerycacher.utils.Utils;
@@ -35,7 +34,6 @@ public final class Main {
     public static final ByteBufAllocator BYTE_BUF_ALLOCATOR = PooledByteBufAllocator.DEFAULT;
     public static EventLoopGroup eventLoopGroup;
     private static Stats stats;
-    private static CacheCleaner cacheCleaner;
     private static InfoClient infoClient;
     private static PlayerClient playerClient;
 
@@ -56,6 +54,7 @@ public final class Main {
             }
 
             List<ChannelFuture> channelFutureList = new ArrayList<>();
+            Handler handler = new Handler();
 
             Bootstrap bootstrap = new Bootstrap()
                     .group(eventLoopGroup)
@@ -66,7 +65,7 @@ public final class Main {
                     .option(ChannelOption.RCVBUF_ALLOCATOR, new AdaptiveRecvByteBufAllocator())
                     .option(UnixChannelOption.SO_REUSEPORT, true)
                     .option(EpollChannelOption.UDP_GRO, true) // Enable UDP GRO
-                    .handler(new Handler());
+                    .handler(handler);
 
             for (int i = 0; i < Config.Threads; i++) {
                 // Bind and Start Server
@@ -91,12 +90,10 @@ public final class Main {
             }
 
             stats = new Stats();
-            cacheCleaner = new CacheCleaner();
             infoClient = new InfoClient("A2SInfoClient");
             playerClient = new PlayerClient("A2SPlayerClient");
 
             stats.start();
-            cacheCleaner.start();
             infoClient.start();
             playerClient.start();
         } catch (Exception ex) {
@@ -111,14 +108,12 @@ public final class Main {
         Future<?> future = eventLoopGroup.shutdownGracefully();
         infoClient.shutdown();
         playerClient.shutdown();
-        CacheHub.CHALLENGE_CACHE.invalidateAll();
-        CacheHub.CHALLENGE_CACHE.cleanUp();
+        CacheHub.CHALLENGE_MAP.clear();
 
         Utils.safeRelease(CacheHub.A2S_INFO);
         Utils.safeRelease(CacheHub.A2S_PLAYER);
 
         stats.shutdown();
-        cacheCleaner.shutdown();
         future.get();
     }
 }
