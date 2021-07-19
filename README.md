@@ -21,7 +21,7 @@ Java 11 and Linux Kernel 3.9+.
 ## How to run:
 1. [Download](https://docs.aws.amazon.com/corretto/latest/corretto-11-ug/what-is-corretto-11.html) and Install Java 11.
 2. Download Source Engine Query Cacher Binary.
-3. Execute the following command: `java -jar SourceEngineQueryCacher-1.6.5.jar`
+3. Execute the following command: `java -jar SourceEngineQueryCacher-1.6.6.jar`
 4. Source Engine Query Cacher will start and display 'Server Started on Socket: IP:PORT'.
 5. Configure IPTables for routing Query Packets and everything is done.
 
@@ -33,17 +33,14 @@ iptables -t nat -A PREROUTING -p udp --dport 27015 --match string --algo kmp --h
 ```
 ## Configuration
 ### Configuration File
-Execute the following command to load configuration file: `java -jar SourceEngineQueryCacher-1.6.5.jar -c Config.conf`
+Execute the following command to load configuration file: `java -jar SourceEngineQueryCacher-1.6.6.jar -c Config.conf
 ```
 Threads: Number of Threads
 StatsPPS: Enable Packets per Second Stats
 StatsbPS: Enable Bits per Second Stats
 GameUpdateInterval: Game Server Update rate in Milliseconds
 GameUpdateSocketTimeout: Game Server Update Socket Timeout in Milliseconds
-MaxChallengeCode: Maximum Challenge Codes to be saved
-ChallengeCacheCleanerInterval: Challenge Code Cache Cleaner Interval in Milliseconds
 ChallengeCodeTTL: Maximum Validity of Challenge Code in Milliseconds
-ChallengeCodeCacheConcurrency: Challenge Code Cache Concurrency
 LocalServerIPAddress: IP Address on which Cacher Server will bind and listen
 LocalServerPort: Port on which Cacher Server will bind and listen
 GameServerIPAddress: Game Server IP Address
@@ -52,20 +49,17 @@ ReceiveBufferSize: Server Receive Buffer Size
 SendBufferSize: Server Send Buffer Size
 ```
 ### Process Arguments
-Example: Execute the following command to pass Process Arguments: `java -jar SourceEngineQueryCacher-1.6.5.jar -bind 192.168.1.100 -port 27015`
+Example: Execute the following command to pass Process Arguments: `java -jar SourceEngineQueryCacher-1.6.6.jar -bind 192.168.1.100 -port 27015`
 ```
 -b,--bpsStats                          Enable Bits per Second Stats
 -bind <arg>                            Local Server IP Address on which Cacher Server will bind and listen
 -c,--config <arg>                      Configuration File Path
--challengeCodeCacheCleaner <arg>       Challenge Code Cache Cleaner Interval in Milliseconds
--challengeCodeCacheConcurrency <arg>   Challenge Code Cache Concurrency
 -challengeCodeTTL <arg>                Maximum Validity of Challenge Code in Milliseconds
 -gameip <arg>                          Game Server IP Address
 -gameport <arg>                        Game Server Port
 -gameUpdateRate <arg>                  Game Server Update rate in  Milliseconds
 -gameUpdateTimeout <arg>               Game Server Update Socket Timeout in Milliseconds
 -h,--help                              Display Usages
--maxChallengeCode <arg>                Maximum Challenge Codes to be saved
 -p,--ppsStats                          Enable Packets per Second Stats
 -port <arg>                            Local Server Port on which Cacher Server will bind and listen
 -r,--receiveBuf <arg>                  Server Receive Buffer Size
