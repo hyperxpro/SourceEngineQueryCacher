@@ -96,22 +96,20 @@
             </plugin>
         </plugins>
     </build>
-</project>
-
 <repositories>
   <repository>
     <id>gitlab-maven</id>
-    <url>https://gitlab.com/api/v4/groups/4069061/-/packages/maven</url>
+    <url>${env.CI_API_V4_URL}/projects/${env.CI_PROJECT_ID}/packages/maven</url>
   </repository>
 </repositories>
 <distributionManagement>
   <repository>
     <id>gitlab-maven</id>
-    <url>https://gitlab.com/api/v4/projects/30912897/packages/maven</url>
+    <url>${CI_API_V4_URL}/projects/${env.CI_PROJECT_ID}/packages/maven</url>
   </repository>
   <snapshotRepository>
     <id>gitlab-maven</id>
-    <url>https://gitlab.com/api/v4/projects/30912897/packages/maven</url>
+    <url>${CI_API_V4_URL}/projects/${env.CI_PROJECT_ID}/packages/maven</url>
   </snapshotRepository>
 </distributionManagement>
-
+</project>
