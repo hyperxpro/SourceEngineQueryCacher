@@ -9,7 +9,7 @@
 
     <Loggers>
 
-        <Logger name="com.aayushatharva.sourcecenginequerycacher" level="info">
+        <Logger name="com.aayushatharva.sourcecenginequerycacher" level="debug">
             <AppenderRef ref="ConsoleAppender"/>
         </Logger>
 
