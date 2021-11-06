@@ -119,7 +119,7 @@ final class Handler extends SimpleChannelInboundHandler<DatagramPacket> {
         // If Client IP Address Value is not NULL it means we found the Challenge and now we'll validate it.
         if (ipAddressOfClient != null) {
             // Invalidate Cache since we found Challenge
-            CacheHub.CHALLENGE_MAP.remove(toHexString(Arrays.copyOfRange(Packet, 5, 9)));
+            //CacheHub.CHALLENGE_MAP.remove(toHexString(Arrays.copyOfRange(Packet, 5, 9)));
 
             // Match Client Current IP Address against Cache Stored Client IP Address
             if (ipAddressOfClient.equals(datagramPacket.sender().getAddress().getHostAddress())) {
@@ -138,7 +138,7 @@ final class Handler extends SimpleChannelInboundHandler<DatagramPacket> {
         // If Client IP Address Value is not NULL it means we found the Challenge and now we'll validate it.
         if (ipAddressOfClient != null) {
             // Invalidate Cache since we found Challenge
-            CacheHub.CHALLENGE_MAP.remove(toHexString(Arrays.copyOfRange(Packet, 5, 9)));
+            //CacheHub.CHALLENGE_MAP.remove(toHexString(Arrays.copyOfRange(Packet, 5, 9)));
 
             // Match Client Current IP Address against Cache Stored Client IP Address
             if (ipAddressOfClient.equals(datagramPacket.sender().getAddress().getHostAddress())) {
@@ -157,7 +157,7 @@ final class Handler extends SimpleChannelInboundHandler<DatagramPacket> {
         // If Client IP Address Value is not NULL it means we found the Challenge and now we'll validate it.
         if (ipAddressOfClient != null) {
             // Invalidate Cache since we found Challenge
-            CacheHub.CHALLENGE_MAP.remove(toHexString(Arrays.copyOfRange(Packet, 25, 29)));
+            //CacheHub.CHALLENGE_MAP.remove(toHexString(Arrays.copyOfRange(Packet, 25, 29)));
 
             // Match Client Current IP Address against Cache Stored Client IP Address
             if (ipAddressOfClient.equals(datagramPacket.sender().getAddress().getHostAddress())) {
