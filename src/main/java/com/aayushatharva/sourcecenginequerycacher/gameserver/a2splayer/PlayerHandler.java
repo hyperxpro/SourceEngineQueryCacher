@@ -17,7 +17,7 @@ final class PlayerHandler extends SimpleChannelInboundHandler<DatagramPacket> {
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, DatagramPacket datagramPacket) {
 
-        if (ByteBufUtil.equals(Packets.A2S_PLAYER_CHALLENGE_RESPONSE, datagramPacket.content().slice(0, 5))) {
+        if (ByteBufUtil.equals(Packets.A2S_CHALLENGE_RESPONSE, datagramPacket.content().slice(0, 5))) {
             ByteBuf responseBuf = ctx.alloc().buffer()
                     .writeBytes(Packets.A2S_PLAYER_REQUEST_HEADER.retainedDuplicate())
                     .writeBytes(datagramPacket.content().slice(5, 4));

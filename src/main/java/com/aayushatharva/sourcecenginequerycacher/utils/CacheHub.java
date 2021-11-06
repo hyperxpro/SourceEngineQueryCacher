@@ -21,6 +21,11 @@ public final class CacheHub {
     public static final ByteBuf A2S_PLAYER = Main.BYTE_BUF_ALLOCATOR.buffer();
 
     /**
+     * <p> ByteBuf for `A2S_RULES` Packet. </p>
+     */
+    public static final ByteBuf A2S_RULES = Main.BYTE_BUF_ALLOCATOR.buffer();
+
+    /**
      * Challenge Code Map
      */
     public static final Map<String, String> CHALLENGE_MAP = new SelfExpiringMap<>(new ConcurrentHashMap<>(),
