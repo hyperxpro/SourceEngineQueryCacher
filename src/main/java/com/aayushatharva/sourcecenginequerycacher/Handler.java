@@ -127,7 +127,7 @@ final class Handler extends SimpleChannelInboundHandler<DatagramPacket> {
             }
         } else {
             logger.warn("Invalid Challenge Code received for A2S_PLAYERS from {}:{}:{} [REQUEST DROPPED]",
-                    datagramPacket.sender().getAddress().getHostAddress(), datagramPacket.sender().getPort(), datagramPacket.content());
+                    datagramPacket.sender().getAddress().getHostAddress(), datagramPacket.sender().getPort(), ByteBufUtil.hexDump(datagramPacket.content()));
         }
     }
 
@@ -146,7 +146,7 @@ final class Handler extends SimpleChannelInboundHandler<DatagramPacket> {
             }
         } else {
             logger.warn("Invalid Challenge Code received for A2S_RULES from {}:{}:{} [REQUEST DROPPED]",
-                    datagramPacket.sender().getAddress().getHostAddress(), datagramPacket.sender().getPort(), datagramPacket.content());
+                    datagramPacket.sender().getAddress().getHostAddress(), datagramPacket.sender().getPort(), ByteBufUtil.hexDump(datagramPacket.content()));
         }
     }
 
@@ -165,13 +165,13 @@ final class Handler extends SimpleChannelInboundHandler<DatagramPacket> {
             }
         } else {
             logger.debug("Invalid Challenge Code received for A2S_INFO from {}:{}:{} [REQUEST DROPPED]",
-                    datagramPacket.sender().getAddress().getHostAddress(), datagramPacket.sender().getPort(), datagramPacket.content());
+                    datagramPacket.sender().getAddress().getHostAddress(), datagramPacket.sender().getPort(), ByteBufUtil.hexDump(datagramPacket.content()));
         }
     }
 
     private void dropLog(DatagramPacket datagramPacket) {
         logger.debug("Dropping Packet of Length {} bytes from {}:{}:{}", datagramPacket.content().readableBytes(),
-                datagramPacket.sender().getAddress().getHostAddress(), datagramPacket.sender().getPort(), datagramPacket.content());
+                datagramPacket.sender().getAddress().getHostAddress(), datagramPacket.sender().getPort(), ByteBufUtil.hexDump(datagramPacket.content()));
     }
 
     @Override
