@@ -126,8 +126,8 @@ final class Handler extends SimpleChannelInboundHandler<DatagramPacket> {
                 ctx.writeAndFlush(new DatagramPacket(CacheHub.A2S_PLAYER.retainedDuplicate(), datagramPacket.sender()), ctx.voidPromise());
             }
         } else {
-            logger.warn("Invalid Challenge Code received from {}:{} [REQUEST DROPPED]",
-                    datagramPacket.sender().getAddress().getHostAddress(), datagramPacket.sender().getPort());
+            logger.warn("Invalid Challenge Code received for A2S_PLAYERS from {}:{}:{} [REQUEST DROPPED]",
+                    datagramPacket.sender().getAddress().getHostAddress(), datagramPacket.sender().getPort(), datagramPacket.content());
         }
     }
 
@@ -145,8 +145,8 @@ final class Handler extends SimpleChannelInboundHandler<DatagramPacket> {
                 ctx.writeAndFlush(new DatagramPacket(CacheHub.A2S_RULES.retainedDuplicate(), datagramPacket.sender()), ctx.voidPromise());
             }
         } else {
-            logger.warn("Invalid Challenge Code received from {}:{} [REQUEST DROPPED]",
-                    datagramPacket.sender().getAddress().getHostAddress(), datagramPacket.sender().getPort());
+            logger.warn("Invalid Challenge Code received for A2S_RULES from {}:{}:{} [REQUEST DROPPED]",
+                    datagramPacket.sender().getAddress().getHostAddress(), datagramPacket.sender().getPort(), datagramPacket.content());
         }
     }
 
@@ -164,13 +164,13 @@ final class Handler extends SimpleChannelInboundHandler<DatagramPacket> {
                 ctx.writeAndFlush(new DatagramPacket(CacheHub.A2S_INFO.retainedDuplicate(), datagramPacket.sender()), ctx.voidPromise());
             }
         } else {
-            logger.debug("Invalid Challenge Code received from {}:{} [REQUEST DROPPED]",
-                    datagramPacket.sender().getAddress().getHostAddress(), datagramPacket.sender().getPort());
+            logger.debug("Invalid Challenge Code received for A2S_INFO from {}:{}:{} [REQUEST DROPPED]",
+                    datagramPacket.sender().getAddress().getHostAddress(), datagramPacket.sender().getPort(), datagramPacket.content());
         }
     }
 
     private void dropLog(DatagramPacket datagramPacket) {
-        logger.debug("Dropping Packet of Length {} bytes from {}:{} :{}", datagramPacket.content().readableBytes(),
+        logger.debug("Dropping Packet of Length {} bytes from {}:{}:{}", datagramPacket.content().readableBytes(),
                 datagramPacket.sender().getAddress().getHostAddress(), datagramPacket.sender().getPort(), datagramPacket.content());
     }
 
