@@ -170,8 +170,8 @@ final class Handler extends SimpleChannelInboundHandler<DatagramPacket> {
     }
 
     private void dropLog(DatagramPacket datagramPacket) {
-        logger.debug("Dropping Packet of Length {} bytes from {}:{}", datagramPacket.content().readableBytes(),
-                datagramPacket.sender().getAddress().getHostAddress(), datagramPacket.sender().getPort());
+        logger.debug("Dropping Packet of Length {} bytes from {}:{} :{}", datagramPacket.content().readableBytes(),
+                datagramPacket.sender().getAddress().getHostAddress(), datagramPacket.sender().getPort(), datagramPacket.content());
     }
 
     @Override
