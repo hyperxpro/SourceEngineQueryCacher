@@ -50,7 +50,7 @@ final class Handler extends SimpleChannelInboundHandler<DatagramPacket> {
          * A2S_RULES = 9 Bytes
          */
         if (datagramPacket.content().readableBytes() == 25 || datagramPacket.content().readableBytes() == 9 || datagramPacket.content().readableBytes() == 29) {
-            if (ByteBufUtil.equals(Packets.A2S_INFO_REQUEST, datagramPacket.content())) {
+            if (ByteBufUtil.equals(Packets.A2S_INFO_REQUEST, datagramPacket.content().slice(0, 25))) {
               /*
                * 1. Packets equals to `A2S_INFO_REQUEST` with length==25 (=A2S_INFO without challenge code)
                * then we'll send response of A2S_Challenge Packet.
