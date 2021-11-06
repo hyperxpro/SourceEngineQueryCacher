@@ -63,7 +63,7 @@ final class Handler extends SimpleChannelInboundHandler<DatagramPacket> {
                     sendA2SInfoResponse(ctx, datagramPacket, ByteBufUtil.getBytes(datagramPacket.content()));
                 }
                 return;
-            } else if(ByteBufUtil.equals(Packets.A2S_RULES_REQUEST_HEADER, datagramPacket.content())) {
+            } else if(ByteBufUtil.equals(Packets.A2S_RULES_REQUEST_HEADER, datagramPacket.content().slice(0, 5))) {
               /*
                * 1. Packets equals to `A2S_RULES_CHALLENGE_REQUEST_1` or `A2S_RULES_CHALLENGE_REQUEST_2`
                * then we'll send response of A2S_Challenge Packet.
