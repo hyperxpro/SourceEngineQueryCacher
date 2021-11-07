@@ -46,8 +46,7 @@ final class Stats extends Thread {
             try {
                 sleep(1000L);
             } catch (InterruptedException e) {
-                logger.error("Error at Stats During Interval Sleep", e);
-                return;
+                logger.error("Error at Stats During Interval Sleep ", e);
             }
 
             // If false then we're requested to shutdown.

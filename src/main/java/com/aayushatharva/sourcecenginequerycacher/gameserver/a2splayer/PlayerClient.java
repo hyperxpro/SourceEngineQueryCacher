@@ -38,7 +38,11 @@ public final class PlayerClient extends Thread {
 
             while (keepRunning) {
                 channel.writeAndFlush(Packets.A2S_PLAYER_CHALLENGE_REQUEST_2.retainedDuplicate()).sync();
-                sleep(Config.GameUpdateInterval);
+                try{
+                    sleep(Config.GameUpdateInterval);
+                } catch(InterruptedException e){
+                    logger.error("Error at PlayerClient During Interval Sleep ", e);
+                }
             }
 
             channel.closeFuture().sync();

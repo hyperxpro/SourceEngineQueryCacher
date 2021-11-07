@@ -36,7 +36,12 @@ public final class RulesClient extends Thread {
 
             while (keepRunning) {
                 channel.writeAndFlush(Packets.A2S_RULES_CHALLENGE_REQUEST_2.retainedDuplicate()).sync();
-                sleep(Config.GameUpdateInterval);
+                try{
+                    sleep(Config.GameUpdateInterval);
+                } catch(InterruptedException e){
+                    logger.error("Error at RulesClient During Interval Sleep ", e);
+                }
+
             }
 
             channel.closeFuture().sync();
