@@ -27,7 +27,7 @@ class HandlerTest {
     static void setup() throws InterruptedException {
         main = new Main();
         Main.main(new String[]{"-c", "Cacher.conf"});
-        Thread.sleep(15000);
+        Thread.sleep(2500);
     }
 
     @AfterAll
@@ -119,6 +119,48 @@ class HandlerTest {
         datagramSocket.close();
 
         Assertions.assertEquals("FFFFFFFF44",
+                toHexString(Arrays.copyOfRange(responsePacket.getData(), responsePacket.getOffset(), responsePacket.getLength())).substring(0, 10));
+    }
+
+    @Test
+    @Order(5)
+    void A2SRulesChallenge() throws IOException {
+        DatagramPacket queryPck = new DatagramPacket(ByteBufUtil.getBytes(Packets.A2S_RULES_CHALLENGE_REQUEST_1), 0,
+                ByteBufUtil.getBytes(Packets.A2S_RULES_CHALLENGE_REQUEST_1).length, Config.LocalServer.getAddress(), Config.LocalServer.getPort());
+
+        byte[] responseBytes = new byte[4096];
+        DatagramPacket responsePacket = new DatagramPacket(responseBytes, responseBytes.length);
+
+        DatagramSocket datagramSocket = new DatagramSocket();
+        datagramSocket.setSoTimeout(1000);
+        datagramSocket.send(queryPck);
+        datagramSocket.receive(responsePacket);
+        datagramSocket.close();
+
+        Assertions.assertEquals("FFFFFFFF41",
+                toHexString(Arrays.copyOfRange(responsePacket.getData(), responsePacket.getOffset(), responsePacket.getLength())).substring(0, 10));
+
+        a2sChallenge = Arrays.copyOfRange(Arrays.copyOfRange(responsePacket.getData(), responsePacket.getOffset(), responsePacket.getLength()),
+                5, 9);
+    }
+
+    @Test
+    @Order(6)
+    void A2SRules() throws IOException {
+        byte[] Response = joinArrays(ByteBufUtil.getBytes(Packets.A2S_RULES_REQUEST_HEADER), a2sChallenge);
+        DatagramPacket queryPck = new DatagramPacket(Response, 0, Response.length,
+                Config.LocalServer.getAddress(), Config.LocalServer.getPort());
+
+        byte[] responseBytes = new byte[4096];
+        DatagramPacket responsePacket = new DatagramPacket(responseBytes, responseBytes.length);
+
+        DatagramSocket datagramSocket = new DatagramSocket();
+        datagramSocket.setSoTimeout(1000);
+        datagramSocket.send(queryPck);
+        datagramSocket.receive(responsePacket);
+        datagramSocket.close();
+
+        Assertions.assertEquals("FFFFFFFF45",
                 toHexString(Arrays.copyOfRange(responsePacket.getData(), responsePacket.getOffset(), responsePacket.getLength())).substring(0, 10));
     }
 

@@ -90,13 +90,12 @@ public final class Main {
             for (ChannelFuture channelFuture : channelFutureList) {
                 channelFuture.sync();
             }
-
-            stats = new Stats();
+            if(Config.Stats_bPS == true || Config.Stats_PPS == true) stats = new Stats();
             infoClient = new InfoClient("A2SInfoClient");
             playerClient = new PlayerClient("A2SPlayerClient");
             rulesClient = new RulesClient("A2SRulesClient");
 
-            stats.start();
+            if(Config.Stats_bPS == true || Config.Stats_PPS == true) stats.start();
             infoClient.start();
             playerClient.start();
             rulesClient.start();
@@ -119,7 +118,7 @@ public final class Main {
         Utils.safeRelease(CacheHub.A2S_PLAYER);
         Utils.safeRelease(CacheHub.A2S_RULES);
 
-        stats.shutdown();
+        if(Config.Stats_bPS == true || Config.Stats_PPS == true) stats.shutdown();
         future.get();
     }
 }
