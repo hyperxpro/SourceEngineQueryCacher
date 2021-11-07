@@ -40,6 +40,7 @@ public final class RulesClient extends Thread {
                     sleep(Config.GameUpdateInterval);
                 } catch(InterruptedException e){
                     logger.error("Error at RulesClient During Interval Sleep ", e);
+                    break;
                 }
 
             }

@@ -42,6 +42,7 @@ public final class PlayerClient extends Thread {
                     sleep(Config.GameUpdateInterval);
                 } catch(InterruptedException e){
                     logger.error("Error at PlayerClient During Interval Sleep ", e);
+                    break;
                 }
             }
 

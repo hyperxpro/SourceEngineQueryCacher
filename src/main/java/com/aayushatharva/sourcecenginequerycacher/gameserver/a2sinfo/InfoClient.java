@@ -40,6 +40,7 @@ public final class InfoClient extends Thread {
                     sleep(Config.GameUpdateInterval);
                 } catch(InterruptedException e){
                     logger.error("Error at InfoClient During Interval Sleep ", e);
+                    break;
                 }
             }
 
