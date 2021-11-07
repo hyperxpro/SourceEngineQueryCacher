@@ -14,6 +14,8 @@ public final class Packets {
     public static final ByteBuf A2S_CHALLENGE_RESPONSE = Main.BYTE_BUF_ALLOCATOR.directBuffer()
             .writeBytes(new byte[]{-1, -1, -1, -1, 65});
 
+    public static final int A2S_CHALLENGE_RESPONSE_CODE_POS = 5;
+
     /**
      * FFFFFFFF54536F7572636520456E67696E6520517565727900
      * this packet is special as it will have 4 bytes of additional payload (padded to the end) when replying with a challenge code
