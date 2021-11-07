@@ -35,7 +35,7 @@ public final class RulesClient extends Thread {
             Channel channel = bootstrap.connect(Config.GameServer).sync().channel();
 
             while (keepRunning) {
-                channel.writeAndFlush(Packets.A2S_RULES_REQUEST_2.retainedDuplicate()).sync();
+                channel.writeAndFlush(Packets.A2S_RULES_CHALLENGE_REQUEST_2.retainedDuplicate()).sync();
                 sleep(Config.GameUpdateInterval);
             }
 

@@ -16,13 +16,13 @@ final class RulesHandler extends SimpleChannelInboundHandler<DatagramPacket> {
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, DatagramPacket datagramPacket) {
-      if (ByteBufUtil.equals(Packets.A2S_CHALLENGE_RESPONSE, datagramPacket.content().slice(0, 5))) {
+      if (ByteBufUtil.equals(Packets.A2S_CHALLENGE_RESPONSE, datagramPacket.content().slice(0, Packets.A2S_CHALLENGE_RESPONSE.readableBytes()))) {
           ByteBuf responseBuf = ctx.alloc().buffer()
                   .writeBytes(Packets.A2S_RULES_REQUEST_HEADER.retainedDuplicate())
-                  .writeBytes(datagramPacket.content().slice(5, 4));
+                  .writeBytes(datagramPacket.content().slice(Packets.A2S_RULES_CODE_POS, Packets.LEN_CODE));
 
           ctx.writeAndFlush(responseBuf, ctx.voidPromise());
-      } else if (ByteBufUtil.equals(Packets.A2S_RULES_RESPONSE_HEADER, datagramPacket.content().slice(0, 5))) {
+      } else if (ByteBufUtil.equals(Packets.A2S_RULES_RESPONSE_HEADER, datagramPacket.content().slice(0, Packets.A2S_RULES_RESPONSE_HEADER.readableBytes()))) {
           // Set new Packet Data
         CacheHub.A2S_RULES.clear().writeBytes(datagramPacket.content());
         logger.debug("New A2SRules Update Cached Successfully");
