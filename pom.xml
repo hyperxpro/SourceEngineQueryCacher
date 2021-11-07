@@ -6,7 +6,7 @@
 
     <groupId>com.aayushatharva</groupId>
     <artifactId>SourceEngineQueryCacher</artifactId>
-    <version>1.6.7_bb</version>
+    <version>1.7.0</version>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
