@@ -67,17 +67,17 @@
             <version>${junit}</version>
             <scope>test</scope>
         </dependency>
-        
-        <dependency>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-surefire-plugin</artifactId>
-          <version>${surefire}</version>
-          <scope>test</scope>
-        </dependency>
+
     </dependencies>
 
     <build>
         <plugins>
+            <plugin>
+              <groupId>org.apache.maven.plugins</groupId>
+              <artifactId>maven-surefire-plugin</artifactId>
+              <version>2.22.1</version>
+              <scope>test</scope>
+            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
