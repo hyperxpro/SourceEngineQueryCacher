@@ -62,8 +62,8 @@ public final class Config {
                 .addOption("b", "bpsStats", false, "Enable Bits per Second Stats")
 
 
-                .addOption("gameUpdateRate", true, "Game Server Update rate in Milliseconds")
-                .addOption("gameUpdateTimeout", true, "Game Server Update Socket Timeout in Milliseconds")
+                .addOption("gameUpdateRate", true, "Game Server Info Update retrieval interval in Milliseconds")
+                .addOption("gameUpdateTimeout", true, "Game Server Info Update Socket Timeout in Milliseconds")
 
                 /* Challenge Code */
                 .addOption("challengeCodeTTL", true, "Maximum Validity of Challenge Code in Milliseconds")
@@ -111,8 +111,8 @@ public final class Config {
                 Stats_bPS = true;
             }
 
-            if (cmd.getOptionValue("update") != null) {
-                GameUpdateInterval = Long.parseLong(cmd.getOptionValue("update"));
+            if (cmd.getOptionValue("gameUpdateRate") != null) {
+                GameUpdateInterval = Long.parseLong(cmd.getOptionValue("gameUpdateRate"));
             }
 
             if (cmd.getOptionValue("gameUpdateTimeout") != null) {
@@ -168,8 +168,8 @@ public final class Config {
         Stats_PPS = Boolean.parseBoolean(Data.getProperty("StatsPPS", String.valueOf(Stats_PPS)));
         Stats_bPS = Boolean.parseBoolean(Data.getProperty("StatsbPS", String.valueOf(Stats_PPS)));
 
-        GameUpdateInterval = Long.parseLong(Data.getProperty("GameUpdateInterval", String.valueOf(GameUpdateInterval)));
-        GameUpdateSocketTimeout = Integer.parseInt(Data.getProperty("GameUpdateSocketTimeout", String.valueOf(GameUpdateSocketTimeout)));
+        GameUpdateInterval = Long.parseLong(Data.getProperty("GameUpdateRate", String.valueOf(GameUpdateInterval)));
+        GameUpdateSocketTimeout = Integer.parseInt(Data.getProperty("GameUpdateTimeout", String.valueOf(GameUpdateSocketTimeout)));
 
         ChallengeCodeTTL = Long.parseLong(Data.getProperty("ChallengeCodeTTL", String.valueOf(ChallengeCodeTTL)));
 
@@ -192,8 +192,8 @@ public final class Config {
         logger.info("PPS: " + Stats_PPS);
         logger.info("bPS: " + Stats_bPS);
 
-        logger.info("GameUpdateInterval: " + GameUpdateInterval);
-        logger.info("GameUpdateSocketTimeout: " + GameUpdateSocketTimeout);
+        logger.info("GameUpdateRate: " + GameUpdateInterval);
+        logger.info("GameUpdateTimeout: " + GameUpdateSocketTimeout);
 
         logger.info("ChallengeCodeTTL: " + ChallengeCodeTTL);
 
