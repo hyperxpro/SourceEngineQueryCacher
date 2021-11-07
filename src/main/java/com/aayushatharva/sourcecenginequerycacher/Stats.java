@@ -51,9 +51,9 @@ final class Stats extends Thread {
             }
 
             // If false then we're requested to shutdown.
-            //if (!keepRunning) {
-            //    return;
-            //}
+            if (!keepRunning) {
+                return;
+            }
         }
     }
 
