@@ -144,8 +144,13 @@ final class Handler extends SimpleChannelInboundHandler<DatagramPacket> {
           if (ipAddressOfClient.equals(datagramPacket.sender().getAddress().getHostAddress())) {
             return true;
           } else {
-              logger.warn("Invalid Challenge Code received from {}:{}:{}; Expected IP: {} [REQUEST DROPPED]",
+              if(logger.isDebugEnabled() ){
+                logger.debug("Invalid Challenge Code received from {}:{}:{}; Expected IP: {} [REQUEST DROPPED]",
                       datagramPacket.sender().getAddress().getHostAddress(), datagramPacket.sender().getPort(), ByteBufUtil.hexDump(datagramPacket.content()), ipAddressOfClient);
+              } else {
+                logger.info("Invalid Challenge Code received from {}:{} [REQUEST DROPPED]",
+                      datagramPacket.sender().getAddress().getHostAddress(), datagramPacket.sender().getPort());
+              }
           }
       }
       return false;

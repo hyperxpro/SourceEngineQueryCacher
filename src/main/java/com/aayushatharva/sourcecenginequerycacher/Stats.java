@@ -22,10 +22,10 @@ final class Stats extends Thread {
     public void run() {
 
         logger.info("Starting Stats, PPS Enabled: " + Config.Stats_PPS + ", bPS Enabled: " + Config.Stats_bPS);
-
+        String timestamp;
         while (keepRunning) {
 
-            String timestamp = getTimestamp();
+             timestamp = getTimestamp();
 
             if (Config.Stats_PPS && Config.Stats_bPS) {
                 System.out.print("[" + timestamp + "] [STATS] p/s: " + PPS.getAndSet(0L));
