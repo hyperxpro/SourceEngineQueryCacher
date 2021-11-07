@@ -43,9 +43,9 @@ class HandlerTest {
 
     @Test
     @Order(1)
-    void A2SINFO() throws IOException {
+    void A2SInfoChallenge() throws IOException {
         DatagramPacket queryPck = new DatagramPacket(ByteBufUtil.getBytes(Packets.A2S_INFO_REQUEST), 0,
-                ByteBufUtil.getBytes(Packets.A2S_INFO_REQUEST).length, Config.LocalServer.getAddress(), Config.LocalServer.getPort());
+                Packets.A2S_INFO_REQUEST.readableBytes(), Config.LocalServer.getAddress(), Config.LocalServer.getPort());
         byte[] responseBytes = new byte[4096];
         DatagramPacket responsePacket = new DatagramPacket(responseBytes, responseBytes.length);
 
@@ -55,12 +55,33 @@ class HandlerTest {
         datagramSocket.receive(responsePacket);
         datagramSocket.close();
 
-        Assertions.assertEquals("FFFFFFFF",
-                toHexString(Arrays.copyOfRange(responsePacket.getData(), responsePacket.getOffset(), responsePacket.getLength())).substring(0, 8));
+        Assertions.assertEquals("FFFFFFFF41",
+                toHexString(Arrays.copyOfRange(responsePacket.getData(), responsePacket.getOffset(), responsePacket.getLength())).substring(0, 10));
+        a2sChallenge = Arrays.copyOfRange(Arrays.copyOfRange(responsePacket.getData(), responsePacket.getOffset(), responsePacket.getLength()),
+                        5, 9);
+    }
+    @Test
+    @Order(2)
+    void A2SInfo() throws IOException {
+        byte[] Response = joinArrays(ByteBufUtil.getBytes(Packets.A2S_INFO_REQUEST), a2sChallenge);
+        DatagramPacket queryPck = new DatagramPacket(Response, 0, Response.length,
+                Config.LocalServer.getAddress(), Config.LocalServer.getPort());
+
+        byte[] responseBytes = new byte[4096];
+        DatagramPacket responsePacket = new DatagramPacket(responseBytes, responseBytes.length);
+
+        DatagramSocket datagramSocket = new DatagramSocket();
+        datagramSocket.setSoTimeout(1000);
+        datagramSocket.send(queryPck);
+        datagramSocket.receive(responsePacket);
+        datagramSocket.close();
+
+        Assertions.assertEquals("FFFFFFFF49",
+                toHexString(Arrays.copyOfRange(responsePacket.getData(), responsePacket.getOffset(), responsePacket.getLength())).substring(0, 10));
     }
 
     @Test
-    @Order(2)
+    @Order(3)
     void A2SPlayerChallenge() throws IOException {
         DatagramPacket queryPck = new DatagramPacket(ByteBufUtil.getBytes(Packets.A2S_PLAYER_CHALLENGE_REQUEST_1), 0,
                 ByteBufUtil.getBytes(Packets.A2S_PLAYER_CHALLENGE_REQUEST_1).length, Config.LocalServer.getAddress(), Config.LocalServer.getPort());
@@ -82,7 +103,7 @@ class HandlerTest {
     }
 
     @Test
-    @Order(3)
+    @Order(4)
     void A2SPlayer() throws IOException {
         byte[] Response = joinArrays(ByteBufUtil.getBytes(Packets.A2S_PLAYER_REQUEST_HEADER), a2sChallenge);
         DatagramPacket queryPck = new DatagramPacket(Response, 0, Response.length,
@@ -98,6 +119,48 @@ class HandlerTest {
         datagramSocket.close();
 
         Assertions.assertEquals("FFFFFFFF44",
+                toHexString(Arrays.copyOfRange(responsePacket.getData(), responsePacket.getOffset(), responsePacket.getLength())).substring(0, 10));
+    }
+
+    @Test
+    @Order(5)
+    void A2SRulesChallenge() throws IOException {
+        DatagramPacket queryPck = new DatagramPacket(ByteBufUtil.getBytes(Packets.A2S_RULES_CHALLENGE_REQUEST_1), 0,
+                ByteBufUtil.getBytes(Packets.A2S_RULES_CHALLENGE_REQUEST_1).length, Config.LocalServer.getAddress(), Config.LocalServer.getPort());
+
+        byte[] responseBytes = new byte[4096];
+        DatagramPacket responsePacket = new DatagramPacket(responseBytes, responseBytes.length);
+
+        DatagramSocket datagramSocket = new DatagramSocket();
+        datagramSocket.setSoTimeout(1000);
+        datagramSocket.send(queryPck);
+        datagramSocket.receive(responsePacket);
+        datagramSocket.close();
+
+        Assertions.assertEquals("FFFFFFFF41",
+                toHexString(Arrays.copyOfRange(responsePacket.getData(), responsePacket.getOffset(), responsePacket.getLength())).substring(0, 10));
+
+        a2sChallenge = Arrays.copyOfRange(Arrays.copyOfRange(responsePacket.getData(), responsePacket.getOffset(), responsePacket.getLength()),
+                5, 9);
+    }
+
+    @Test
+    @Order(6)
+    void A2SRules() throws IOException {
+        byte[] Response = joinArrays(ByteBufUtil.getBytes(Packets.A2S_RULES_REQUEST_HEADER), a2sChallenge);
+        DatagramPacket queryPck = new DatagramPacket(Response, 0, Response.length,
+                Config.LocalServer.getAddress(), Config.LocalServer.getPort());
+
+        byte[] responseBytes = new byte[4096];
+        DatagramPacket responsePacket = new DatagramPacket(responseBytes, responseBytes.length);
+
+        DatagramSocket datagramSocket = new DatagramSocket();
+        datagramSocket.setSoTimeout(1000);
+        datagramSocket.send(queryPck);
+        datagramSocket.receive(responsePacket);
+        datagramSocket.close();
+
+        Assertions.assertEquals("FFFFFFFF45",
                 toHexString(Arrays.copyOfRange(responsePacket.getData(), responsePacket.getOffset(), responsePacket.getLength())).substring(0, 10));
     }
 

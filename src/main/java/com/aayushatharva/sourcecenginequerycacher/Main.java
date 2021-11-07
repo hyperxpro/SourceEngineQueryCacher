@@ -2,6 +2,7 @@ package com.aayushatharva.sourcecenginequerycacher;
 
 import com.aayushatharva.sourcecenginequerycacher.gameserver.a2sinfo.InfoClient;
 import com.aayushatharva.sourcecenginequerycacher.gameserver.a2splayer.PlayerClient;
+import com.aayushatharva.sourcecenginequerycacher.gameserver.a2srules.RulesClient;
 import com.aayushatharva.sourcecenginequerycacher.utils.CacheHub;
 import com.aayushatharva.sourcecenginequerycacher.utils.Config;
 import com.aayushatharva.sourcecenginequerycacher.utils.Utils;
@@ -36,6 +37,7 @@ public final class Main {
     private static Stats stats;
     private static InfoClient infoClient;
     private static PlayerClient playerClient;
+    private static RulesClient rulesClient;
 
     public static void main(String[] args) {
 
@@ -88,14 +90,15 @@ public final class Main {
             for (ChannelFuture channelFuture : channelFutureList) {
                 channelFuture.sync();
             }
-
-            stats = new Stats();
+            if(Config.Stats_bPS == true || Config.Stats_PPS == true) stats = new Stats();
             infoClient = new InfoClient("A2SInfoClient");
             playerClient = new PlayerClient("A2SPlayerClient");
+            rulesClient = new RulesClient("A2SRulesClient");
 
-            stats.start();
+            if(Config.Stats_bPS == true || Config.Stats_PPS == true) stats.start();
             infoClient.start();
             playerClient.start();
+            rulesClient.start();
         } catch (Exception ex) {
             logger.atError().withThrowable(ex).log("Error while Initializing");
         }
@@ -108,12 +111,14 @@ public final class Main {
         Future<?> future = eventLoopGroup.shutdownGracefully();
         infoClient.shutdown();
         playerClient.shutdown();
+        rulesClient.shutdown();
         CacheHub.CHALLENGE_MAP.clear();
 
         Utils.safeRelease(CacheHub.A2S_INFO);
         Utils.safeRelease(CacheHub.A2S_PLAYER);
+        Utils.safeRelease(CacheHub.A2S_RULES);
 
-        stats.shutdown();
+        if(Config.Stats_bPS == true || Config.Stats_PPS == true) stats.shutdown();
         future.get();
     }
 }

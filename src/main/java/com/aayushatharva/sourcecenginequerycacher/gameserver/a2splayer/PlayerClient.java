@@ -1,7 +1,6 @@
 package com.aayushatharva.sourcecenginequerycacher.gameserver.a2splayer;
 
 import com.aayushatharva.sourcecenginequerycacher.Main;
-import com.aayushatharva.sourcecenginequerycacher.gameserver.a2sinfo.InfoClient;
 import com.aayushatharva.sourcecenginequerycacher.utils.Config;
 import com.aayushatharva.sourcecenginequerycacher.utils.Packets;
 import io.netty.bootstrap.Bootstrap;
@@ -14,7 +13,7 @@ import org.apache.logging.log4j.Logger;
 
 public final class PlayerClient extends Thread {
 
-    private static final Logger logger = LogManager.getLogger(InfoClient.class);
+    private static final Logger logger = LogManager.getLogger(PlayerClient.class);
     private boolean keepRunning = true;
 
     public PlayerClient(String name) {
@@ -39,7 +38,12 @@ public final class PlayerClient extends Thread {
 
             while (keepRunning) {
                 channel.writeAndFlush(Packets.A2S_PLAYER_CHALLENGE_REQUEST_2.retainedDuplicate()).sync();
-                sleep(Config.GameUpdateInterval);
+                try{
+                    sleep(Config.GameUpdateInterval);
+                } catch(InterruptedException e){
+                    logger.error("Error at PlayerClient During Interval Sleep ", e);
+                    break;
+                }
             }
 
             channel.closeFuture().sync();

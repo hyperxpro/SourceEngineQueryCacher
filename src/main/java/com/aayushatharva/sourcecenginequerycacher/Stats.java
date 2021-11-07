@@ -22,10 +22,10 @@ final class Stats extends Thread {
     public void run() {
 
         logger.info("Starting Stats, PPS Enabled: " + Config.Stats_PPS + ", bPS Enabled: " + Config.Stats_bPS);
-
+        String timestamp;
         while (keepRunning) {
 
-            String timestamp = getTimestamp();
+             timestamp = getTimestamp();
 
             if (Config.Stats_PPS && Config.Stats_bPS) {
                 System.out.print("[" + timestamp + "] [STATS] p/s: " + PPS.getAndSet(0L));
@@ -46,8 +46,8 @@ final class Stats extends Thread {
             try {
                 sleep(1000L);
             } catch (InterruptedException e) {
-                logger.error("Error at Stats During Interval Sleep", e);
-                return;
+                logger.error("Error at Stats During Interval Sleep ", e);
+                break;
             }
 
             // If false then we're requested to shutdown.
@@ -70,7 +70,7 @@ final class Stats extends Thread {
     }
 
     public void shutdown() {
-        interrupt();
+        this.interrupt();
         keepRunning = false;
     }
 }

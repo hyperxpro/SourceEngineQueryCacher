@@ -36,7 +36,12 @@ public final class InfoClient extends Thread {
 
             while (keepRunning) {
                 channel.writeAndFlush(Packets.A2S_INFO_REQUEST.retainedDuplicate()).sync();
-                sleep(Config.GameUpdateInterval);
+                try{
+                    sleep(Config.GameUpdateInterval);
+                } catch(InterruptedException e){
+                    logger.error("Error at InfoClient During Interval Sleep ", e);
+                    break;
+                }
             }
 
             channel.closeFuture().sync();
