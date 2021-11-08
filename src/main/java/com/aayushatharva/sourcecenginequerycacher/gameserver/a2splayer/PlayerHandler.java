@@ -27,7 +27,7 @@ final class PlayerHandler extends SimpleChannelInboundHandler<DatagramPacket> {
             // Set new Packet Data
             CacheHub.A2S_PLAYER.clear().writeBytes(datagramPacket.content());
 
-            logger.debug("New A2SPlayer Update Cached Successfully");
+            logger.debug("New A2SPlayer Update Cached Successfully; Size: {}", datagramPacket.content().readableBytes());
         } else {
             logger.error("Received unsupported A2S Player Response from Game Server: {}", ByteBufUtil.hexDump(datagramPacket.content()));
         }
