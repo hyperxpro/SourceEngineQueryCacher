@@ -162,7 +162,7 @@ public final class Config {
                 ReceiveAllocatorBufferSize = Integer.parseInt(cmd.getOptionValue("receiveAllocatorBuf"));
             }
             if (cmd.getOptionValue("receiveAllocatorBufMax") != null) {
-                ReceiveAllocatorBufferSizeMax = Integer.parseInt(cmd.getOptionValue("receiveAllocatorBuf_nax"));
+                ReceiveAllocatorBufferSizeMax = Integer.parseInt(cmd.getOptionValue("receiveAllocatorBufMax"));
             }
 
         }
