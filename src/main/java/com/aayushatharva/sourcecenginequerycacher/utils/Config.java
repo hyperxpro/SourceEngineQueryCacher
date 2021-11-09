@@ -47,7 +47,9 @@ public final class Config {
     // Buffers
     public static Integer ReceiveBufferSize = 65535;
     public static Integer SendBufferSize = 65535;
-
+    public static Integer ReceiveAllocatorBufferSize = 65535;
+    public static Integer ReceiveAllocatorBufferSizeMin = 2048; //leave this bigger than the standard MTU of 1500
+    public static Integer ReceiveAllocatorBufferSizeMax = 65535;
     // Stats
     public static boolean Stats_PPS = false;
     public static boolean Stats_bPS = false;
@@ -77,7 +79,8 @@ public final class Config {
                 /* Buffers */
                 .addOption("r", "receiveBuf", true, "Server Receive Buffer Size")
                 .addOption("s", "sendBuf", true, "Server Send Buffer Size")
-                .addOption("a", "receiveAllocatorBuf", true, "Fixed Receive ByteBuf Allocator Buffer Size");
+                .addOption("a0", "receiveAllocatorBuf", true, "Initial Receive ByteBuf Allocator Buffer Size")
+                .addOption("a1", "receiveAllocatorBufMax", true, "Maximum Receive ByteBuf Allocator Buffer Size");
     }
 
     public static void setup(String[] args) throws ParseException, IOException {
@@ -154,6 +157,14 @@ public final class Config {
             if (cmd.getOptionValue("sendBuf") != null) {
                 SendBufferSize = Integer.parseInt(cmd.getOptionValue("sendBuf"));
             }
+
+            if (cmd.getOptionValue("receiveAllocatorBuf") != null) {
+                ReceiveAllocatorBufferSize = Integer.parseInt(cmd.getOptionValue("receiveAllocatorBuf"));
+            }
+            if (cmd.getOptionValue("receiveAllocatorBufMax") != null) {
+                ReceiveAllocatorBufferSizeMax = Integer.parseInt(cmd.getOptionValue("receiveAllocatorBuf_nax"));
+            }
+
         }
 
         displayConfig();
@@ -182,6 +193,8 @@ public final class Config {
 
         ReceiveBufferSize = Integer.parseInt(Data.getProperty("ReceiveBufferSize", String.valueOf(ReceiveBufferSize)));
         SendBufferSize = Integer.parseInt(Data.getProperty("SendBufferSize", String.valueOf(SendBufferSize)));
+        ReceiveAllocatorBufferSize = Integer.parseInt(Data.getProperty("ReceiveAllocatorBufferSize", String.valueOf(ReceiveAllocatorBufferSize)));
+        ReceiveAllocatorBufferSizeMax = Integer.parseInt(Data.getProperty("ReceiveAllocatorBufferSizeMax", String.valueOf(ReceiveAllocatorBufferSizeMax)));
 
         Data.clear(); // Clear Properties
     }
@@ -204,6 +217,8 @@ public final class Config {
 
         logger.info("ReceiveBufferSize: " + ReceiveBufferSize);
         logger.info("SendBufferSize: " + SendBufferSize);
+        logger.info("ReceiveAllocatorBufferSize: " + ReceiveAllocatorBufferSize);
+        logger.info("ReceiveAllocatorBufferSizeMax: " + ReceiveAllocatorBufferSizeMax);
         logger.info("-------------------------------------------------");
     }
 
