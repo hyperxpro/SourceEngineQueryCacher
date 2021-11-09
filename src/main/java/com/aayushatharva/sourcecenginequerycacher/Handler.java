@@ -142,16 +142,21 @@ final class Handler extends SimpleChannelInboundHandler<DatagramPacket> {
       if (ipAddressOfClient != null) {
           // Match Client Current IP Address against Cache Stored Client IP Address
           if (ipAddressOfClient.equals(datagramPacket.sender().getAddress().getHostAddress())) {
+            logger.debug("Valid Challenge Code ({}) received from {}:{}  [REQUEST ACCEPTED]", toHexString(challengeCode),
+                  datagramPacket.sender().getAddress().getHostAddress(), datagramPacket.sender().getPort());
             return true;
           } else {
               if(logger.isDebugEnabled() ){
-                logger.debug("Invalid Challenge Code received from {}:{}:{}; Expected IP: {} [REQUEST DROPPED]",
+                logger.info("Invalid Challenge Code ({}) received from {}:{}:{}; Expected IP: {} [REQUEST DROPPED]", toHexString(challengeCode),
                       datagramPacket.sender().getAddress().getHostAddress(), datagramPacket.sender().getPort(), ByteBufUtil.hexDump(datagramPacket.content()), ipAddressOfClient);
               } else {
-                logger.info("Invalid Challenge Code received from {}:{} [REQUEST DROPPED]",
-                      datagramPacket.sender().getAddress().getHostAddress(), datagramPacket.sender().getPort());
+                logger.info("Invalid Challenge Code ({}) received from {}:{} Expected IP: {} [REQUEST DROPPED]", toHexString(challengeCode),
+                      datagramPacket.sender().getAddress().getHostAddress(), datagramPacket.sender().getPort(), ipAddressOfClient);
               }
           }
+      } else {
+        logger.debug("Unknown (Old?) Challenge Code ({}) received from {}:{} [REQUEST DROPPED]", toHexString(challengeCode),
+              datagramPacket.sender().getAddress().getHostAddress(), datagramPacket.sender().getPort());
       }
       return false;
     }
