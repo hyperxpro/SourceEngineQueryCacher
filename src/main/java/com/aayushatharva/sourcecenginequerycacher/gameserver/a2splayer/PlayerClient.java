@@ -22,9 +22,7 @@ public final class PlayerClient extends Thread {
 
     @SuppressWarnings("BusyWait")
     public void run() {
-
         try {
-
             Bootstrap bootstrap = new Bootstrap()
                     .group(Main.eventLoopGroup)
                     .channelFactory(EpollDatagramChannel::new)
@@ -53,8 +51,8 @@ public final class PlayerClient extends Thread {
     }
 
     public void shutdown() {
-        this.keepRunning = false;
         this.interrupt();
+        keepRunning = false;
 
     }
 }
