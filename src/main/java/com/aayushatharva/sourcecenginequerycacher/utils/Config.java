@@ -6,7 +6,11 @@ import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
+import org.apache.logging.log4j.core.config.LoggerConfig;
+import org.apache.logging.log4j.core.LoggerContext;
+import org.apache.logging.log4j.core.config.Configuration;
 import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.Logger;
 
 import java.io.FileInputStream;
@@ -38,7 +42,7 @@ public final class Config {
     /**
      * Challenge Code Validity
      */
-    public static Long ChallengeCodeTTL = 5000L;
+    public static Long ChallengeCodeTTL = 2000L;
 
     // IP Addresses and Ports
     public static InetSocketAddress LocalServer = new InetSocketAddress(InetAddress.getLoopbackAddress(), 27016);
@@ -47,12 +51,15 @@ public final class Config {
     // Buffers
     public static Integer ReceiveBufferSize = 65535;
     public static Integer SendBufferSize = 65535;
-    public static Integer ReceiveAllocatorBufferSize = 65535;
     public static Integer ReceiveAllocatorBufferSizeMin = 2048; //leave this bigger than the standard MTU of 1500
+    public static Integer ReceiveAllocatorBufferSize = ReceiveAllocatorBufferSizeMin;
     public static Integer ReceiveAllocatorBufferSizeMax = 65535;
     // Stats
     public static boolean Stats_PPS = false;
     public static boolean Stats_bPS = false;
+
+    //LogLevel for handling Log Level changes without interfering with the log4j2.xml inside the .jar
+    public static Level LogLevel = Level.INFO;
 
     static {
         options = new Options()
@@ -68,7 +75,7 @@ public final class Config {
                 .addOption("gameUpdateTimeout", true, "Game Server Info Update Socket Timeout in Milliseconds")
 
                 /* Challenge Code */
-                .addOption("challengeCodeTTL", true, "Maximum Validity of Challenge Code in Milliseconds")
+                .addOption("challengeCodeTTL", true, "Maximum Validity of Challenge Code in Milliseconds (best practise is 2000)")
 
                 /* IP Addresses and Ports */
                 .addOption("gameip", true, "Game Server IP Address")
@@ -79,9 +86,12 @@ public final class Config {
                 /* Buffers */
                 .addOption("r", "receiveBuf", true, "Server Receive Buffer Size")
                 .addOption("s", "sendBuf", true, "Server Send Buffer Size")
-                .addOption("a0", "receiveAllocatorBuf", true, "Initial Receive ByteBuf Allocator Buffer Size")
-                .addOption("a1", "receiveAllocatorBufMax", true, "Maximum Receive ByteBuf Allocator Buffer Size");
+                .addOption("a0", "receiveAllocatorBuf", true, "Initial Receive ByteBuf Allocator Buffer Size (must be smaller than Max)")
+                .addOption("a1", "receiveAllocatorBufMax", true, "Maximum Receive ByteBuf Allocator Buffer Size")
+                /* LogLevel */
+                .addOption("s", "logLevel", true, "Change the Log output verbosity. In order of most to least Verbose: [ALL,TRACE,DEBUG,INFO,WARN,ERROR,FATAL,OFF]");
     }
+
 
     public static void setup(String[] args) throws ParseException, IOException {
 
@@ -158,14 +168,25 @@ public final class Config {
                 SendBufferSize = Integer.parseInt(cmd.getOptionValue("sendBuf"));
             }
 
-            if (cmd.getOptionValue("receiveAllocatorBuf") != null) {
-                ReceiveAllocatorBufferSize = Integer.parseInt(cmd.getOptionValue("receiveAllocatorBuf"));
-            }
+
             if (cmd.getOptionValue("receiveAllocatorBufMax") != null) {
                 ReceiveAllocatorBufferSizeMax = Integer.parseInt(cmd.getOptionValue("receiveAllocatorBufMax"));
             }
+            if (cmd.getOptionValue("receiveAllocatorBuf") != null) {
+                ReceiveAllocatorBufferSize = Math.min(Integer.parseInt(cmd.getOptionValue("receiveAllocatorBuf")),ReceiveAllocatorBufferSizeMax);
+            }
+
+            if (cmd.getOptionValue("logLevel") != null) {
+                LogLevel = Level.toLevel(cmd.getOptionValue("logLevel"));
+            }
 
         }
+        //Set Log Level Programmatically without relying on the log4J2.xml
+        LoggerContext ctx = (LoggerContext) LogManager.getContext(false);
+        Configuration config = ctx.getConfiguration();
+        LoggerConfig loggerConfig = config.getLoggerConfig("com.aayushatharva.sourcecenginequerycacher");
+        loggerConfig.setLevel(LogLevel);
+        ctx.updateLoggers();
 
         displayConfig();
     }
@@ -193,8 +214,10 @@ public final class Config {
 
         ReceiveBufferSize = Integer.parseInt(Data.getProperty("ReceiveBufferSize", String.valueOf(ReceiveBufferSize)));
         SendBufferSize = Integer.parseInt(Data.getProperty("SendBufferSize", String.valueOf(SendBufferSize)));
-        ReceiveAllocatorBufferSize = Integer.parseInt(Data.getProperty("ReceiveAllocatorBufferSize", String.valueOf(ReceiveAllocatorBufferSize)));
         ReceiveAllocatorBufferSizeMax = Integer.parseInt(Data.getProperty("ReceiveAllocatorBufferSizeMax", String.valueOf(ReceiveAllocatorBufferSizeMax)));
+        ReceiveAllocatorBufferSize = Math.min(Integer.parseInt(Data.getProperty("ReceiveAllocatorBufferSize", String.valueOf(ReceiveAllocatorBufferSize))),ReceiveAllocatorBufferSizeMax);
+
+        LogLevel = Level.toLevel(Data.getProperty("LogLevel", LogLevel.toString()));
 
         Data.clear(); // Clear Properties
     }
@@ -219,6 +242,8 @@ public final class Config {
         logger.info("SendBufferSize: " + SendBufferSize);
         logger.info("ReceiveAllocatorBufferSize: " + ReceiveAllocatorBufferSize);
         logger.info("ReceiveAllocatorBufferSizeMax: " + ReceiveAllocatorBufferSizeMax);
+
+        logger.info("LogLevel: " + logger.getLevel().toString());
         logger.info("-------------------------------------------------");
     }
 
