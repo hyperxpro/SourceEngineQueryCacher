@@ -52,7 +52,7 @@ public final class Config {
     public static Integer ReceiveBufferSize = 65535;
     public static Integer SendBufferSize = 65535;
     public static Integer ReceiveAllocatorBufferSizeMin = 2048; //leave this bigger than the standard MTU of 1500
-    public static Integer ReceiveAllocatorBufferSize = ReceiveAllocatorBufferSizeMin;
+    public static Integer ReceiveAllocatorBufferSize = 65535;
     public static Integer ReceiveAllocatorBufferSizeMax = 65535;
     // Stats
     public static boolean Stats_PPS = false;

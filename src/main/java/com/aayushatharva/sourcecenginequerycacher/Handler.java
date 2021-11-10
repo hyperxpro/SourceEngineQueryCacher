@@ -32,7 +32,7 @@ final class Handler extends SimpleChannelInboundHandler<DatagramPacket> {
         }
 
         /*
-         * If A2S_INFO or A2S_PLAYER is null or 0 bytes, drop request because we've nothing to reply.
+         * If A2S_INFO or A2S_PLAYER or A2S_RULES is null or 0 bytes, drop request because we've nothing to reply.
          */
         if (CacheHub.A2S_INFO == null || CacheHub.A2S_INFO.readableBytes() == 0 ||
                 CacheHub.A2S_PLAYER == null || CacheHub.A2S_PLAYER.readableBytes() == 0 ||
@@ -113,7 +113,7 @@ final class Handler extends SimpleChannelInboundHandler<DatagramPacket> {
 
     private void sendA2SPlayerResponse(ChannelHandlerContext ctx, DatagramPacket datagramPacket) {
         if (isIPValid(datagramPacket, Arrays.copyOfRange(ByteBufUtil.getBytes(datagramPacket.content()),
-                                        Packets.A2S_PLAYER_CODE_POS, Packets.A2S_PLAYER_CODE_POS + Packets.LEN_CODE), "A2S_PLAYERS") == true)
+                                        Packets.A2S_PLAYER_CODE_POS, Packets.A2S_PLAYER_CODE_POS + Packets.LEN_CODE), "A2S_PLAYER") == true)
         {
             ctx.writeAndFlush(new DatagramPacket(CacheHub.A2S_PLAYER.retainedDuplicate(), datagramPacket.sender()), ctx.voidPromise());
         }
