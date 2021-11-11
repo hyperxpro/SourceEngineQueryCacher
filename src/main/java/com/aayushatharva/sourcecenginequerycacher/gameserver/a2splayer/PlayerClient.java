@@ -29,7 +29,7 @@ public final class PlayerClient extends Thread {
                     .option(ChannelOption.ALLOCATOR, Main.BYTE_BUF_ALLOCATOR)
                     .option(ChannelOption.SO_SNDBUF, Config.SendBufferSize)
                     .option(ChannelOption.SO_RCVBUF, Config.ReceiveBufferSize)
-                    .option(ChannelOption.RCVBUF_ALLOCATOR, new AdaptiveRecvByteBufAllocator(Config.ReceiveAllocatorBufferSizeMin, Config.ReceiveAllocatorBufferSize, Config.ReceiveAllocatorBufferSizeMax))
+                    .option(ChannelOption.RCVBUF_ALLOCATOR, new AdaptiveRecvByteBufAllocator())
                     .handler(new PlayerHandler());
 
             Channel channel = bootstrap.connect(Config.GameServer).sync().channel();
