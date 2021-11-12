@@ -27,8 +27,14 @@ final class InfoHandler extends SimpleChannelInboundHandler<DatagramPacket> {
         CacheHub.A2S_INFO.clear().writeBytes(datagramPacket.content());
 
         logger.debug("New A2SInfo Update Cached Successfully; Size: {}", CacheHub.A2S_INFO.readableBytes());
+      } else if (ByteBufUtil.equals(Packets.A2S_INFO_RESPONSE_HEADER_SPLIT, datagramPacket.content().slice(0, Packets.A2S_INFO_RESPONSE_HEADER_SPLIT.readableBytes()))) {
+            // Set new Packet Data
+            // todo: Make sure we get and send all packets.
+          CacheHub.A2S_INFO.clear().writeBytes(datagramPacket.content());
+
+          logger.debug("[SPLIT PACKET] New A2SInfo Update Cached Successfully; Size: {}", CacheHub.A2S_INFO.readableBytes());
       } else {
-          logger.error("Received unsupported A2S Info Response from Game Server: {}", ByteBufUtil.hexDump(datagramPacket.content()));
+          logger.error("Received unsupported A2S Info Response from Game Server: {}", ByteBufUtil.hexDump(datagramPacket.content()).toUpperCase());
       }
     }
 }

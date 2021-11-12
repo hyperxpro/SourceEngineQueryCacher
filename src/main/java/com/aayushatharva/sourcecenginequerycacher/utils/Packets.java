@@ -31,6 +31,12 @@ public final class Packets {
     public static final ByteBuf A2S_INFO_RESPONSE_HEADER = Main.BYTE_BUF_ALLOCATOR.directBuffer()
             .writeBytes(new byte[]{-1, -1, -1, -1, 73});
 
+    /**
+     * FFFFFFFE49
+     */
+    public static final ByteBuf A2S_INFO_RESPONSE_HEADER_SPLIT = Main.BYTE_BUF_ALLOCATOR.directBuffer()
+            .writeBytes(new byte[]{-1, -1, -1, -2, 73});
+
 
     public static final int A2S_INFO_CODE_POS = 25;
 
@@ -59,6 +65,12 @@ public final class Packets {
      */
     public static final ByteBuf A2S_RULES_RESPONSE_HEADER = Main.BYTE_BUF_ALLOCATOR.directBuffer()
             .writeBytes(new byte[]{-1, -1, -1, -1, 69});
+
+    /**
+     * FFFFFFFE45
+     */
+    public static final ByteBuf A2S_RULES_RESPONSE_HEADER_SPLIT = Main.BYTE_BUF_ALLOCATOR.directBuffer()
+            .writeBytes(new byte[]{-1, -1, -1, -2, 69});
 
 
     public static final int A2S_RULES_CODE_POS = 5;
@@ -89,6 +101,11 @@ public final class Packets {
     public static final ByteBuf A2S_PLAYER_RESPONSE_HEADER = Main.BYTE_BUF_ALLOCATOR.directBuffer()
             .writeBytes(new byte[]{-1, -1, -1, -1, 68});
 
+    /**
+     * FFFFFFFE44
+     */
+    public static final ByteBuf A2S_PLAYER_RESPONSE_HEADER_SPLIT = Main.BYTE_BUF_ALLOCATOR.directBuffer()
+            .writeBytes(new byte[]{-1, -1, -1, -2, 68});
 
     public static final int A2S_PLAYER_CODE_POS = 5;
 }

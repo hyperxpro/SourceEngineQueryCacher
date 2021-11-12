@@ -35,7 +35,7 @@ final class Handler extends SimpleChannelInboundHandler<DatagramPacket> {
          * If A2S_INFO or A2S_PLAYER or A2S_RULES is null or 0 bytes, drop request because we've nothing to reply.
          */
         if (CacheHub.A2S_INFO == null || CacheHub.A2S_INFO.readableBytes() == 0 ||
-                CacheHub.A2S_PLAYER == null || CacheHub.A2S_PLAYER.readableBytes() == 0 ||
+                //CacheHub.A2S_PLAYER == null || CacheHub.A2S_PLAYER.readableBytes() == 0 ||
                 CacheHub.A2S_RULES == null || CacheHub.A2S_RULES.readableBytes() == 0) {
             logger.error("Dropping query request because Cache is not ready. A2S_INFO: {}, A2S_PLAYER: {}, A2S_RULES: {}",
                     CacheHub.A2S_INFO, CacheHub.A2S_PLAYER, CacheHub.A2S_RULES);
@@ -115,7 +115,6 @@ final class Handler extends SimpleChannelInboundHandler<DatagramPacket> {
         if (isIPValid(datagramPacket, Arrays.copyOfRange(ByteBufUtil.getBytes(datagramPacket.content()),
                                         Packets.A2S_PLAYER_CODE_POS, Packets.A2S_PLAYER_CODE_POS + Packets.LEN_CODE), "A2S_PLAYER") == true)
         {
-            logger.trace("Sending out PlayerResponse to {}:{} [{}][REQUEST ACCEPTED]", datagramPacket.sender().getAddress().getHostAddress(), datagramPacket.sender().getPort(), "A2S_PLAYER");
             ctx.writeAndFlush(new DatagramPacket(CacheHub.A2S_PLAYER.retainedDuplicate(), datagramPacket.sender()), ctx.voidPromise());
         }
     }
@@ -124,7 +123,6 @@ final class Handler extends SimpleChannelInboundHandler<DatagramPacket> {
         if (isIPValid(datagramPacket, Arrays.copyOfRange(ByteBufUtil.getBytes(datagramPacket.content()),
                                         Packets.A2S_RULES_CODE_POS, Packets.A2S_RULES_CODE_POS + Packets.LEN_CODE), "A2S_RULES") == true)
         {
-
             ctx.writeAndFlush(new DatagramPacket(CacheHub.A2S_RULES.retainedDuplicate(), datagramPacket.sender()), ctx.voidPromise());
         }
     }
@@ -144,13 +142,13 @@ final class Handler extends SimpleChannelInboundHandler<DatagramPacket> {
       if (ipAddressOfClient != null) {
           // Match Client Current IP Address against Cache Stored Client IP Address
           if (ipAddressOfClient.equals(datagramPacket.sender().getAddress().getHostAddress())) {
-            logger.trace("{} Valid Challenge Code ({}) received from {}:{} [{}][REQUEST ACCEPTED]", toHexString(challengeCode),
+            logger.trace("Valid Challenge Code ({}) received from {}:{} [{}][REQUEST ACCEPTED]", toHexString(challengeCode),
                   datagramPacket.sender().getAddress().getHostAddress(), datagramPacket.sender().getPort(), logTrace);
             return true;
           } else {
               if(logger.isDebugEnabled() ){
                 logger.debug("Invalid Challenge Code ({}) received from {}:{}:{}; Expected IP: {} [{}][REQUEST DROPPED]", toHexString(challengeCode),
-                      datagramPacket.sender().getAddress().getHostAddress(), datagramPacket.sender().getPort(), ByteBufUtil.hexDump(datagramPacket.content()), ipAddressOfClient, logTrace);
+                      datagramPacket.sender().getAddress().getHostAddress(), datagramPacket.sender().getPort(), ByteBufUtil.hexDump(datagramPacket.content()).toUpperCase(), ipAddressOfClient, logTrace);
               } else {
                 logger.info("Invalid Challenge Code ({}) received from {}:{} Expected IP: {} [{}][REQUEST DROPPED]", toHexString(challengeCode),
                       datagramPacket.sender().getAddress().getHostAddress(), datagramPacket.sender().getPort(), ipAddressOfClient, logTrace);
