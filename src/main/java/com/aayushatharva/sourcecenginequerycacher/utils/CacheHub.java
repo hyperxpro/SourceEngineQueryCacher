@@ -3,7 +3,6 @@ package com.aayushatharva.sourcecenginequerycacher.utils;
 import com.aayushatharva.sourcecenginequerycacher.Main;
 import com.shieldblaze.expressgateway.common.map.SelfExpiringMap;
 import io.netty.buffer.ByteBuf;
-
 import java.time.Duration;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -28,7 +27,7 @@ public final class CacheHub {
     /**
      * Challenge Code Map
      */
-    public static final Map<String, String> CHALLENGE_MAP = new SelfExpiringMap<>(new ConcurrentHashMap<>(),
+    public static final Map<Integer, byte[]> CHALLENGE_MAP = new SelfExpiringMap<>(new ConcurrentHashMap<>(),
             Duration.ofMillis(Config.ChallengeCodeTTL),
             false);
 }
