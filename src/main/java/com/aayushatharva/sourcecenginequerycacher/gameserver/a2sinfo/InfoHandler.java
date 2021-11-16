@@ -16,18 +16,18 @@ final class InfoHandler extends SimpleChannelInboundHandler<DatagramPacket> {
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, DatagramPacket datagramPacket) {
-      if (ByteBufUtil.equals(Packets.A2S_CHALLENGE_RESPONSE, datagramPacket.content().slice(0, Packets.A2S_CHALLENGE_RESPONSE.readableBytes()))) {
+      if (ByteBufUtil.equals(Packets.A2S_CHALLENGE_RESPONSE_HEADER, datagramPacket.content().slice(0, Packets.A2S_CHALLENGE_RESPONSE_HEADER_LEN))) {
           ByteBuf responseBuf = ctx.alloc().buffer()
                   .writeBytes(Packets.A2S_INFO_REQUEST.retainedDuplicate())
                   .writeBytes(datagramPacket.content().slice(Packets.A2S_CHALLENGE_RESPONSE_CODE_POS, Packets.LEN_CODE));
 
           ctx.writeAndFlush(responseBuf, ctx.voidPromise());
-      } else if (ByteBufUtil.equals(Packets.A2S_INFO_RESPONSE_HEADER, datagramPacket.content().slice(0, Packets.A2S_INFO_RESPONSE_HEADER.readableBytes()))) {
+      } else if (ByteBufUtil.equals(Packets.A2S_INFO_RESPONSE_HEADER, datagramPacket.content().slice(0, Packets.A2S_INFO_RESPONSE_HEADER_LEN))) {
           // Set new Packet Data
         CacheHub.A2S_INFO.clear().writeBytes(datagramPacket.content());
 
         logger.debug("New A2SInfo Update Cached Successfully; Size: {}", CacheHub.A2S_INFO.readableBytes());
-      } else if (ByteBufUtil.equals(Packets.A2S_INFO_RESPONSE_HEADER_SPLIT, datagramPacket.content().slice(0, Packets.A2S_INFO_RESPONSE_HEADER_SPLIT.readableBytes()))) {
+      } else if (ByteBufUtil.equals(Packets.A2S_INFO_RESPONSE_HEADER_SPLIT, datagramPacket.content().slice(0, Packets.A2S_INFO_RESPONSE_HEADER_SPLIT_LEN))) {
             // Set new Packet Data
             // todo: Make sure we get and send all packets.
           CacheHub.A2S_INFO.clear().writeBytes(datagramPacket.content());

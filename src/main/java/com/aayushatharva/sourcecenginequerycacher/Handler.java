@@ -5,7 +5,6 @@ import com.aayushatharva.sourcecenginequerycacher.utils.Config;
 import com.aayushatharva.sourcecenginequerycacher.utils.Packets;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufUtil;
-import static io.netty.buffer.Unpooled.wrappedBuffer;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
@@ -61,12 +60,12 @@ final class Handler extends SimpleChannelInboundHandler<DatagramPacket> {
          * A2S_Player = 9 Bytes
          * A2S_RULES = 9 Bytes
          */
-        if (datagramPacket.content().readableBytes() == Packets.A2S_RULES_CHALLENGE_REQUEST_2.readableBytes() ||
-        datagramPacket.content().readableBytes() == Packets.A2S_PLAYER_CHALLENGE_REQUEST_2.readableBytes() ||
-              datagramPacket.content().readableBytes() == Packets.A2S_INFO_REQUEST.readableBytes() ||
-              datagramPacket.content().readableBytes() == Packets.A2S_INFO_REQUEST.readableBytes() + Packets.LEN_CODE ) //4 Byte padded challenge Code
+        if (datagramPacket.content().readableBytes() == Packets.A2S_RULES_CHALLENGE_REQUEST_2_LEN ||
+        datagramPacket.content().readableBytes() == Packets.A2S_PLAYER_CHALLENGE_REQUEST_2_LEN ||
+              datagramPacket.content().readableBytes() == Packets.A2S_INFO_REQUEST_LEN ||
+              datagramPacket.content().readableBytes() == Packets.A2S_INFO_REQUEST_LEN + Packets.LEN_CODE ) //4 Byte padded challenge Code
         {
-            if(ByteBufUtil.equals(Packets.A2S_RULES_REQUEST_HEADER, datagramPacket.content().slice(0, Packets.A2S_RULES_REQUEST_HEADER.readableBytes()))) {
+            if(ByteBufUtil.equals(Packets.A2S_RULES_REQUEST_HEADER, datagramPacket.content().slice(0, Packets.A2S_RULES_REQUEST_HEADER_LEN))) {
               /* 1. Packet equals `A2S_RULES_CHALLENGE_REQUEST_1` or `A2S_RULES_CHALLENGE_REQUEST_2`
                * then we'll send response of A2S_Challenge Packet.
                */
@@ -78,7 +77,7 @@ final class Handler extends SimpleChannelInboundHandler<DatagramPacket> {
                     sendA2SRulesResponse(ctx, datagramPacket);
                 }
                 return;
-            } else if (ByteBufUtil.equals(Packets.A2S_PLAYER_REQUEST_HEADER, datagramPacket.content().slice(0, Packets.A2S_PLAYER_REQUEST_HEADER.readableBytes()))) {
+            } else if (ByteBufUtil.equals(Packets.A2S_PLAYER_REQUEST_HEADER, datagramPacket.content().slice(0, Packets.A2S_PLAYER_REQUEST_HEADER_LEN))) {
                 /* 1. Packets equals to `A2S_PLAYER_CHALLENGE_REQUEST_1` or `A2S_PLAYER_CHALLENGE_REQUEST_2`
                  * then we'll send response of A2S_Player Challenge Packet.
                  */
@@ -91,16 +90,16 @@ final class Handler extends SimpleChannelInboundHandler<DatagramPacket> {
                 }
                 return;
             }
-            if (ByteBufUtil.equals(Packets.A2S_INFO_REQUEST, datagramPacket.content().slice(0, Packets.A2S_INFO_REQUEST.readableBytes()))) {
+            if (ByteBufUtil.equals(Packets.A2S_INFO_REQUEST, datagramPacket.content().slice(0, Packets.A2S_INFO_REQUEST_LEN))) {
               /*
                * 1. Packets equals to `A2S_INFO_REQUEST` with length==25 (=A2S_INFO without challenge code)
                * then we'll send response of A2S_Challenge Packet.
                *
                * 2. Validate A2S_INFO Challenge Response (lenght==29) and send A2S_INFO Packet.
                */
-                if (datagramPacket.content().readableBytes() == Packets.A2S_INFO_REQUEST.readableBytes()) {
+                if (datagramPacket.content().readableBytes() == Packets.A2S_INFO_REQUEST_LEN) {
                     sendA2SChallenge(ctx, datagramPacket);
-                } else if (datagramPacket.content().readableBytes() == Packets.A2S_INFO_REQUEST.readableBytes() + Packets.LEN_CODE) { //4 Byte padded challenge Code
+                } else if (datagramPacket.content().readableBytes() == Packets.A2S_INFO_REQUEST_LEN + Packets.LEN_CODE) { //4 Byte padded challenge Code
                     sendA2SInfoResponse(ctx, datagramPacket);
                 }
                 return;
@@ -121,10 +120,9 @@ final class Handler extends SimpleChannelInboundHandler<DatagramPacket> {
           return challengeCode;
         });
 
-
         // Send A2S CHALLENGE Packet
         ByteBuf byteBuf = ctx.alloc().buffer();
-        byteBuf.writeBytes(Packets.A2S_CHALLENGE_RESPONSE.retainedDuplicate());
+        byteBuf.writeBytes(Packets.A2S_CHALLENGE_RESPONSE_HEADER.retainedDuplicate());
         byteBuf.writeBytes(challenge);
         ctx.writeAndFlush(new DatagramPacket(byteBuf, datagramPacket.sender()), ctx.voidPromise());
     }
@@ -164,20 +162,16 @@ final class Handler extends SimpleChannelInboundHandler<DatagramPacket> {
                   datagramPacket.sender().getAddress().getHostAddress(), datagramPacket.sender().getPort(), logTrace);
             return true;
           } else {
-              if(logger.isDebugEnabled() ){
-                logger.debug("Invalid Challenge Code ({}) received from {}:{}:{}; Expected Code: {} [{}][REQUEST DROPPED]", toHexString(challengeCode),
-                      datagramPacket.sender().getAddress().getHostAddress(), datagramPacket.sender().getPort(), ByteBufUtil.hexDump(datagramPacket.content()).toUpperCase(), storedChallengeCode, logTrace);
-              } else {
-                logger.info("Invalid Challenge Code ({}) received from {}:{} Expected Code: {} [{}][REQUEST DROPPED]", toHexString(challengeCode),
-                      datagramPacket.sender().getAddress().getHostAddress(), datagramPacket.sender().getPort(), storedChallengeCode, logTrace);
-              }
+            logger.debug("Invalid Challenge Code ({}) received from {}:{} Expected Code: {} [{}][REQUEST DROPPED]", toHexString(challengeCode),
+                  datagramPacket.sender().getAddress().getHostAddress(), datagramPacket.sender().getPort(), storedChallengeCode, logTrace);
+            return false;
           }
       } else {
         //if you see lots of messages like this in the log, try raising the ChallengeCodeTTL (best practise is 2000)
         logger.debug("Unknown (Old?) Challenge Code ({}) received from {}:{} [{}][REQUEST DROPPED]", toHexString(challengeCode),
               datagramPacket.sender().getAddress().getHostAddress(), datagramPacket.sender().getPort(), logTrace);
+        return false;
       }
-      return false;
     }
 
     private void dropLog(DatagramPacket datagramPacket) {
