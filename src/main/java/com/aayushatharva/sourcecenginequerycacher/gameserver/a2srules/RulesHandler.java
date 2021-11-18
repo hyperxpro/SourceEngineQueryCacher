@@ -16,7 +16,7 @@ final class RulesHandler extends SimpleChannelInboundHandler<DatagramPacket> {
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, DatagramPacket datagramPacket) {
-      if (ByteBufUtil.equals(Packets.A2S_CHALLENGE_RESPONSE, datagramPacket.content().slice(0, Packets.A2S_CHALLENGE_RESPONSE.readableBytes()))) {
+      if (ByteBufUtil.equals(Packets.A2S_CHALLENGE_RESPONSE_HEADER, datagramPacket.content().slice(0, Packets.A2S_CHALLENGE_RESPONSE_HEADER_LEN))) {
           ByteBuf responseBuf = ctx.alloc().buffer()
                   .writeBytes(Packets.A2S_RULES_REQUEST_HEADER.retainedDuplicate())
                   .writeBytes(datagramPacket.content().slice(Packets.A2S_CHALLENGE_RESPONSE_CODE_POS, Packets.LEN_CODE));
@@ -25,9 +25,14 @@ final class RulesHandler extends SimpleChannelInboundHandler<DatagramPacket> {
       } else if (ByteBufUtil.equals(Packets.A2S_RULES_RESPONSE_HEADER, datagramPacket.content().slice(0, Packets.A2S_RULES_RESPONSE_HEADER.readableBytes()))) {
           // Set new Packet Data
         CacheHub.A2S_RULES.clear().writeBytes(datagramPacket.content());
-        logger.debug("New A2SRules Update Cached Successfully; Size: {}", CacheHub.A2S_INFO.readableBytes());
+        logger.debug("New A2SRules Update Cached Successfully; Size: {}", CacheHub.A2S_RULES.readableBytes());
+      } else if (ByteBufUtil.equals(Packets.A2S_RULES_RESPONSE_HEADER_SPLIT, datagramPacket.content().slice(0, Packets.A2S_RULES_RESPONSE_HEADER_SPLIT.readableBytes()))) {
+            // Set new Packet Data
+          CacheHub.A2S_RULES.clear().writeBytes(datagramPacket.content());
+
+          logger.debug("[SPLIT PACKET] New A2SRules Update Cached Successfully; Size: {}; Content: {}", CacheHub.A2S_RULES.readableBytes(), ByteBufUtil.hexDump(datagramPacket.content()).toUpperCase());
       } else {
-          logger.error("Received unsupported A2S Rules Response from Game Server: {}", ByteBufUtil.hexDump(datagramPacket.content()));
+          logger.error("Received unsupported A2S Rules Response from Game Server: {}", ByteBufUtil.hexDump(datagramPacket.content()).toUpperCase());
       }
     }
 }
