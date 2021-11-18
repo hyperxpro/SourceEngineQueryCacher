@@ -70,7 +70,8 @@ final class Stats extends Thread {
     }
 
     public void shutdown() {
+        this.keepRunning = false;
         this.interrupt();
-        keepRunning = false;
+
     }
 }

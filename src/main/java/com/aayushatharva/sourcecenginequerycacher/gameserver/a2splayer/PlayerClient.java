@@ -22,16 +22,14 @@ public final class PlayerClient extends Thread {
 
     @SuppressWarnings("BusyWait")
     public void run() {
-
         try {
-
             Bootstrap bootstrap = new Bootstrap()
                     .group(Main.eventLoopGroup)
                     .channelFactory(EpollDatagramChannel::new)
                     .option(ChannelOption.ALLOCATOR, Main.BYTE_BUF_ALLOCATOR)
                     .option(ChannelOption.SO_SNDBUF, Config.SendBufferSize)
                     .option(ChannelOption.SO_RCVBUF, Config.ReceiveBufferSize)
-                    .option(ChannelOption.RCVBUF_ALLOCATOR, new AdaptiveRecvByteBufAllocator())
+                    .option(ChannelOption.RCVBUF_ALLOCATOR, new AdaptiveRecvByteBufAllocator(Config.ReceiveAllocatorBufferSizeMin, Config.ReceiveAllocatorBufferSize, Config.ReceiveAllocatorBufferSizeMax))
                     .handler(new PlayerHandler());
 
             Channel channel = bootstrap.connect(Config.GameServer).sync().channel();
@@ -55,5 +53,6 @@ public final class PlayerClient extends Thread {
     public void shutdown() {
         this.interrupt();
         keepRunning = false;
+
     }
 }

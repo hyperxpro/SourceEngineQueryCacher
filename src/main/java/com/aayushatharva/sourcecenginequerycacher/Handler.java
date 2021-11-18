@@ -32,7 +32,7 @@ final class Handler extends SimpleChannelInboundHandler<DatagramPacket> {
         }
 
         /*
-         * If A2S_INFO or A2S_PLAYER is null or 0 bytes, drop request because we've nothing to reply.
+         * If A2S_INFO or A2S_PLAYER or A2S_RULES is null or 0 bytes, drop request because we've nothing to reply.
          */
         if (CacheHub.A2S_INFO == null || CacheHub.A2S_INFO.readableBytes() == 0 ||
                 CacheHub.A2S_PLAYER == null || CacheHub.A2S_PLAYER.readableBytes() == 0 ||
@@ -113,45 +113,53 @@ final class Handler extends SimpleChannelInboundHandler<DatagramPacket> {
 
     private void sendA2SPlayerResponse(ChannelHandlerContext ctx, DatagramPacket datagramPacket) {
         if (isIPValid(datagramPacket, Arrays.copyOfRange(ByteBufUtil.getBytes(datagramPacket.content()),
-                                        Packets.A2S_PLAYER_CODE_POS, Packets.A2S_PLAYER_CODE_POS + Packets.LEN_CODE)) == true)
+                                        Packets.A2S_PLAYER_CODE_POS, Packets.A2S_PLAYER_CODE_POS + Packets.LEN_CODE), "A2S_PLAYER") == true)
         {
+            logger.trace("Sending out PlayerResponse to {}:{} [{}][REQUEST ACCEPTED]", datagramPacket.sender().getAddress().getHostAddress(), datagramPacket.sender().getPort(), "A2S_PLAYER");
             ctx.writeAndFlush(new DatagramPacket(CacheHub.A2S_PLAYER.retainedDuplicate(), datagramPacket.sender()), ctx.voidPromise());
         }
     }
 
     private void sendA2SRulesResponse(ChannelHandlerContext ctx, DatagramPacket datagramPacket) {
         if (isIPValid(datagramPacket, Arrays.copyOfRange(ByteBufUtil.getBytes(datagramPacket.content()),
-                                        Packets.A2S_RULES_CODE_POS, Packets.A2S_RULES_CODE_POS + Packets.LEN_CODE)) == true)
+                                        Packets.A2S_RULES_CODE_POS, Packets.A2S_RULES_CODE_POS + Packets.LEN_CODE), "A2S_RULES") == true)
         {
+
             ctx.writeAndFlush(new DatagramPacket(CacheHub.A2S_RULES.retainedDuplicate(), datagramPacket.sender()), ctx.voidPromise());
         }
     }
 
     private void sendA2SInfoResponse(ChannelHandlerContext ctx, DatagramPacket datagramPacket) {
         if (isIPValid(datagramPacket, Arrays.copyOfRange(ByteBufUtil.getBytes(datagramPacket.content()),
-                                        Packets.A2S_INFO_CODE_POS, Packets.A2S_INFO_CODE_POS + Packets.LEN_CODE)) == true)
+                                        Packets.A2S_INFO_CODE_POS, Packets.A2S_INFO_CODE_POS + Packets.LEN_CODE), "A2S_INFO") == true)
         {
             ctx.writeAndFlush(new DatagramPacket(CacheHub.A2S_INFO.retainedDuplicate(), datagramPacket.sender()), ctx.voidPromise());
         }
     }
 
-    private boolean isIPValid(DatagramPacket datagramPacket, byte[] challengeCode) {
+    private boolean isIPValid(DatagramPacket datagramPacket, byte[] challengeCode, String logTrace) {
       // Look for Challenge Code in Cache and load Client IP Address Value from it.
       String ipAddressOfClient = CacheHub.CHALLENGE_MAP.get(toHexString(challengeCode));
       // If Client IP Address Value is not NULL it means we found the Challenge and now we'll validate it.
       if (ipAddressOfClient != null) {
           // Match Client Current IP Address against Cache Stored Client IP Address
           if (ipAddressOfClient.equals(datagramPacket.sender().getAddress().getHostAddress())) {
+            logger.trace("{} Valid Challenge Code ({}) received from {}:{} [{}][REQUEST ACCEPTED]", toHexString(challengeCode),
+                  datagramPacket.sender().getAddress().getHostAddress(), datagramPacket.sender().getPort(), logTrace);
             return true;
           } else {
               if(logger.isDebugEnabled() ){
-                logger.debug("Invalid Challenge Code received from {}:{}:{}; Expected IP: {} [REQUEST DROPPED]",
-                      datagramPacket.sender().getAddress().getHostAddress(), datagramPacket.sender().getPort(), ByteBufUtil.hexDump(datagramPacket.content()), ipAddressOfClient);
+                logger.debug("Invalid Challenge Code ({}) received from {}:{}:{}; Expected IP: {} [{}][REQUEST DROPPED]", toHexString(challengeCode),
+                      datagramPacket.sender().getAddress().getHostAddress(), datagramPacket.sender().getPort(), ByteBufUtil.hexDump(datagramPacket.content()), ipAddressOfClient, logTrace);
               } else {
-                logger.info("Invalid Challenge Code received from {}:{} [REQUEST DROPPED]",
-                      datagramPacket.sender().getAddress().getHostAddress(), datagramPacket.sender().getPort());
+                logger.info("Invalid Challenge Code ({}) received from {}:{} Expected IP: {} [{}][REQUEST DROPPED]", toHexString(challengeCode),
+                      datagramPacket.sender().getAddress().getHostAddress(), datagramPacket.sender().getPort(), ipAddressOfClient, logTrace);
               }
           }
+      } else {
+        //if you see lots of messages like this in the log, try raising the ChallengeCodeTTL (best practise is 2000)
+        logger.debug("Unknown (Old?) Challenge Code ({}) received from {}:{} [{}][REQUEST DROPPED]", toHexString(challengeCode),
+              datagramPacket.sender().getAddress().getHostAddress(), datagramPacket.sender().getPort(), logTrace);
       }
       return false;
     }

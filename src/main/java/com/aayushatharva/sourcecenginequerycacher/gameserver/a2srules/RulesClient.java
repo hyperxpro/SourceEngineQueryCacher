@@ -29,7 +29,7 @@ public final class RulesClient extends Thread {
                     .option(ChannelOption.ALLOCATOR, Main.BYTE_BUF_ALLOCATOR)
                     .option(ChannelOption.SO_SNDBUF, Config.SendBufferSize)
                     .option(ChannelOption.SO_RCVBUF, Config.ReceiveBufferSize)
-                    .option(ChannelOption.RCVBUF_ALLOCATOR, new AdaptiveRecvByteBufAllocator())
+                    .option(ChannelOption.RCVBUF_ALLOCATOR, new AdaptiveRecvByteBufAllocator(Config.ReceiveAllocatorBufferSizeMin, Config.ReceiveAllocatorBufferSize, Config.ReceiveAllocatorBufferSizeMax))
                     .handler(new RulesHandler());
 
             Channel channel = bootstrap.connect(Config.GameServer).sync().channel();
@@ -52,7 +52,7 @@ public final class RulesClient extends Thread {
     }
 
     public void shutdown() {
+        this.keepRunning = false;
         this.interrupt();
-        keepRunning = false;
     }
 }
