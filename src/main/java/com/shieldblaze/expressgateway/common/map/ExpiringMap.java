@@ -159,6 +159,6 @@ public abstract class ExpiringMap<K, V> implements Map<K, V> {
     }
 
     protected boolean isExpired(Object key) {
-        return System.nanoTime() - timestampsMap.get(key) > ttlNanos;
+        return System.currentTimeMillis() - timestampsMap.get(key) > ttlNanos;
     }
 }
