@@ -50,7 +50,7 @@ class HandlerTest {
         DatagramPacket responsePacket = new DatagramPacket(responseBytes, responseBytes.length);
 
         DatagramSocket datagramSocket = new DatagramSocket();
-        datagramSocket.setSoTimeout(1000);
+        datagramSocket.setSoTimeout(100);
         datagramSocket.send(queryPck);
         datagramSocket.receive(responsePacket);
         datagramSocket.close();
@@ -71,7 +71,7 @@ class HandlerTest {
         DatagramPacket responsePacket = new DatagramPacket(responseBytes, responseBytes.length);
 
         DatagramSocket datagramSocket = new DatagramSocket();
-        datagramSocket.setSoTimeout(1000);
+        datagramSocket.setSoTimeout(100);
         datagramSocket.send(queryPck);
         datagramSocket.receive(responsePacket);
         datagramSocket.close();
@@ -90,7 +90,7 @@ class HandlerTest {
         DatagramPacket responsePacket = new DatagramPacket(responseBytes, responseBytes.length);
 
         DatagramSocket datagramSocket = new DatagramSocket();
-        datagramSocket.setSoTimeout(1000);
+        datagramSocket.setSoTimeout(100);
         datagramSocket.send(queryPck);
         datagramSocket.receive(responsePacket);
         datagramSocket.close();
@@ -113,7 +113,7 @@ class HandlerTest {
         DatagramPacket responsePacket = new DatagramPacket(responseBytes, responseBytes.length);
 
         DatagramSocket datagramSocket = new DatagramSocket();
-        datagramSocket.setSoTimeout(1000);
+        datagramSocket.setSoTimeout(100);
         datagramSocket.send(queryPck);
         datagramSocket.receive(responsePacket);
         datagramSocket.close();
@@ -132,7 +132,7 @@ class HandlerTest {
         DatagramPacket responsePacket = new DatagramPacket(responseBytes, responseBytes.length);
 
         DatagramSocket datagramSocket = new DatagramSocket();
-        datagramSocket.setSoTimeout(1000);
+        datagramSocket.setSoTimeout(100);
         datagramSocket.send(queryPck);
         datagramSocket.receive(responsePacket);
         datagramSocket.close();
@@ -155,7 +155,7 @@ class HandlerTest {
         DatagramPacket responsePacket = new DatagramPacket(responseBytes, responseBytes.length);
 
         DatagramSocket datagramSocket = new DatagramSocket();
-        datagramSocket.setSoTimeout(1000);
+        datagramSocket.setSoTimeout(100);
         datagramSocket.send(queryPck);
         datagramSocket.receive(responsePacket);
         datagramSocket.close();
