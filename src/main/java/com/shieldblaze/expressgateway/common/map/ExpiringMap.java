@@ -35,7 +35,7 @@ public abstract class ExpiringMap<K, V> implements Map<K, V> {
 
     private final Map<K, V> storageMap;
     private final Map<Object, Long> timestampsMap = new HashMap<>();
-    private final long ttlNanos;
+    private final long ttlMillis;
     private final boolean autoRenew;
     private final EntryRemovedListener<V> entryRemovedListener;
 
@@ -72,7 +72,7 @@ public abstract class ExpiringMap<K, V> implements Map<K, V> {
      */
     public ExpiringMap(Map<K, V> storageMap, Duration ttlDuration, boolean autoRenew, EntryRemovedListener<V> entryRemovedListener) {
         this.storageMap = Objects.requireNonNull(storageMap, "StorageMap");
-        ttlNanos = ttlDuration.toNanos();
+        ttlMillis = ttlDuration.toMillis();
         this.autoRenew = autoRenew;
 
         if (this.storageMap.size() != 0) {
@@ -106,14 +106,14 @@ public abstract class ExpiringMap<K, V> implements Map<K, V> {
     public V get(Object key) {
         V v = storageMap.get(key);
         if (autoRenew) {
-            timestampsMap.put(key, System.nanoTime());
+            timestampsMap.put(key, System.currentTimeMillis());
         }
         return v;
     }
 
     @Override
     public V put(K key, V value) {
-        timestampsMap.put(key, System.nanoTime());
+        timestampsMap.put(key, System.currentTimeMillis());
         return storageMap.put(key, value);
     }
 
@@ -159,6 +159,6 @@ public abstract class ExpiringMap<K, V> implements Map<K, V> {
     }
 
     protected boolean isExpired(Object key) {
-        return System.currentTimeMillis() - timestampsMap.get(key) > ttlNanos;
+        return System.currentTimeMillis() - timestampsMap.get(key) > ttlMillis;
     }
 }
