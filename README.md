@@ -1,7 +1,6 @@
 # Source Engine Query Cacher
 
-## This is a hard fork of
-https://github.com/hyperxpro/SourceEngineQueryCacher
+## This is a hard fork of https://github.com/hyperxpro/SourceEngineQueryCacher
 And as such breaks compatibility with pre existing tests and configs. Please make sure you take the updated configs from this repository.
 
 <p> High-Performance Source Engine Query Cacher for caching and responding to A2S_INFO, A2S_RULES and A2S_PLAYER packets.</p>
