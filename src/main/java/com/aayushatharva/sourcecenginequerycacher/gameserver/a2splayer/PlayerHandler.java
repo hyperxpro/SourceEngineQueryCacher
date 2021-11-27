@@ -23,17 +23,20 @@ final class PlayerHandler extends SimpleChannelInboundHandler<DatagramPacket> {
                     .writeBytes(datagramPacket.content().slice(Packets.A2S_CHALLENGE_RESPONSE_CODE_POS, Packets.LEN_CODE));
 
             ctx.writeAndFlush(responseBuf, ctx.voidPromise());
-            logger.debug("Fetching A2SPlayer Update with Challenge Code {}", ByteBufUtil.hexDump(datagramPacket.content().slice(Packets.A2S_CHALLENGE_RESPONSE_CODE_POS, Packets.LEN_CODE)).toUpperCase());
+            logger.debug("Fetching A2SPlayer Update with Challenge Code {}",
+                    ByteBufUtil.hexDump(datagramPacket.content().slice(Packets.A2S_CHALLENGE_RESPONSE_CODE_POS, Packets.LEN_CODE)).toUpperCase());
         } else if (ByteBufUtil.equals(Packets.A2S_PLAYER_RESPONSE_HEADER, datagramPacket.content().slice(0, Packets.A2S_PLAYER_RESPONSE_HEADER.readableBytes()))) {
             // Set new Packet Data
             CacheHub.A2S_PLAYER.clear().writeBytes(datagramPacket.content());
 
             logger.debug("New A2SPlayer Update Cached Successfully; Size: {}", CacheHub.A2S_PLAYER.readableBytes());
-        } else if (ByteBufUtil.equals(Packets.A2S_PLAYER_RESPONSE_HEADER_SPLIT, datagramPacket.content().slice(0, Packets.A2S_PLAYER_RESPONSE_HEADER_SPLIT.readableBytes()))) {
+        } else if (ByteBufUtil.equals(Packets.A2S_PLAYER_RESPONSE_HEADER_SPLIT,
+                datagramPacket.content().slice(0, Packets.A2S_PLAYER_RESPONSE_HEADER_SPLIT.readableBytes()))) {
               // Set new Packet Data
             CacheHub.A2S_PLAYER.clear().writeBytes(datagramPacket.content());
 
-            logger.debug("[SPLIT PACKET] New A2SPlayer Update Cached Successfully; Size: {}; Content: {}", CacheHub.A2S_PLAYER.readableBytes(), ByteBufUtil.hexDump(datagramPacket.content()).toUpperCase());
+            logger.debug("[SPLIT PACKET] New A2SPlayer Update Cached Successfully; Size: {}; Content: {}",
+                    CacheHub.A2S_PLAYER.readableBytes(), ByteBufUtil.hexDump(datagramPacket.content()).toUpperCase());
         } else {
             logger.error("Received unsupported A2S Player Response from Game Server: {}", ByteBufUtil.hexDump(datagramPacket.content()).toUpperCase());
         }

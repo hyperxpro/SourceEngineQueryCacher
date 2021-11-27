@@ -32,7 +32,6 @@ import java.util.concurrent.Future;
 public final class Main {
     private static final Logger logger = LogManager.getLogger(Main.class);
 
-    public static final ByteBufAllocator BYTE_BUF_ALLOCATOR = PooledByteBufAllocator.DEFAULT;
     public static EventLoopGroup eventLoopGroup;
     private static Stats stats;
     private static InfoClient infoClient;
@@ -50,7 +49,7 @@ public final class Main {
             if (Epoll.isAvailable()) {
                 eventLoopGroup = new EpollEventLoopGroup(Config.Threads);
             } else {
-                // Epoll is requested but Epoll is not available so we'll throw error and shut down.
+                // Epoll is requested but Epoll is not available then we'll throw error and shut down.
                 System.err.println("Epoll Transport is not available, shutting down...");
                 System.exit(1);
             }
@@ -61,28 +60,30 @@ public final class Main {
             Bootstrap bootstrap = new Bootstrap()
                     .group(eventLoopGroup)
                     .channelFactory(() -> new EpollDatagramChannel(InternetProtocolFamily.IPv4))
-                    .option(ChannelOption.ALLOCATOR, BYTE_BUF_ALLOCATOR)
+                    .option(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)
                     .option(ChannelOption.SO_SNDBUF, Config.SendBufferSize)
                     .option(ChannelOption.SO_RCVBUF, Config.ReceiveBufferSize)
                     .option(EpollChannelOption.MAX_DATAGRAM_PAYLOAD_SIZE, 1400)
-                    .option(ChannelOption.RCVBUF_ALLOCATOR, new AdaptiveRecvByteBufAllocator(Config.ReceiveAllocatorBufferSizeMin, Config.ReceiveAllocatorBufferSize, Config.ReceiveAllocatorBufferSizeMax))
+                    .option(ChannelOption.RCVBUF_ALLOCATOR, new AdaptiveRecvByteBufAllocator(Config.ReceiveAllocatorBufferSizeMin,
+                            Config.ReceiveAllocatorBufferSize, Config.ReceiveAllocatorBufferSizeMax))
                     .option(UnixChannelOption.SO_REUSEPORT, true)
                     .option(EpollChannelOption.UDP_GRO, true) // Enable UDP GRO
                     .handler(handler);
 
             for (int i = 0; i < Config.Threads; i++) {
                 // Bind and Start Server
-                ChannelFuture channelFuture = bootstrap.bind(Config.LocalServer.getAddress(), Config.LocalServer.getPort()).addListener((ChannelFutureListener) future -> {
-                    if (future.isSuccess()) {
-                        logger.info("Server Started on Address: {}:{}",
-                                ((InetSocketAddress) future.channel().localAddress()).getAddress().getHostAddress(),
-                                ((InetSocketAddress) future.channel().localAddress()).getPort());
-                    } else {
-                        logger.error("Caught Error While Starting Server", future.cause());
-                        System.err.println("Shutting down...");
-                        System.exit(1);
-                    }
-                });
+                ChannelFuture channelFuture = bootstrap.bind(Config.LocalServer.getAddress(), Config.LocalServer.getPort())
+                        .addListener((ChannelFutureListener) future -> {
+                            if (future.isSuccess()) {
+                                logger.info("Server Started on Address: {}:{}",
+                                        ((InetSocketAddress) future.channel().localAddress()).getAddress().getHostAddress(),
+                                        ((InetSocketAddress) future.channel().localAddress()).getPort());
+                            } else {
+                                logger.error("Caught Error While Starting Server", future.cause());
+                                System.err.println("Shutting down...");
+                                System.exit(1);
+                            }
+                        });
 
                 channelFutureList.add(channelFuture);
             }
@@ -91,12 +92,13 @@ public final class Main {
             for (ChannelFuture channelFuture : channelFutureList) {
                 channelFuture.sync();
             }
-            if(Config.Stats_bPS == true || Config.Stats_PPS == true) stats = new Stats();
+
+            if (Config.Stats_bPS || Config.Stats_PPS) stats = new Stats();
             infoClient = new InfoClient("A2SInfoClient");
             playerClient = new PlayerClient("A2SPlayerClient");
             rulesClient = new RulesClient("A2SRulesClient");
 
-            if(Config.Stats_bPS == true || Config.Stats_PPS == true) stats.start();
+            if (Config.Stats_bPS || Config.Stats_PPS) stats.start();
             infoClient.start();
             playerClient.start();
             rulesClient.start();
@@ -119,7 +121,7 @@ public final class Main {
         Utils.safeRelease(CacheHub.A2S_PLAYER);
         Utils.safeRelease(CacheHub.A2S_RULES);
 
-        if(Config.Stats_bPS == true || Config.Stats_PPS == true) stats.shutdown();
+        if (Config.Stats_bPS || Config.Stats_PPS) stats.shutdown();
         future.get();
     }
 }

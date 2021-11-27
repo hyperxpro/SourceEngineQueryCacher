@@ -6,12 +6,12 @@ import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
-import org.apache.logging.log4j.core.config.LoggerConfig;
+import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.core.LoggerContext;
 import org.apache.logging.log4j.core.config.Configuration;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Level;
-import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.core.config.LoggerConfig;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -53,7 +53,8 @@ public final class Config {
     public static Integer SendBufferSize = 1048576;
     public static Integer ReceiveAllocatorBufferSizeMin = 20480; //leave this bigger than the standard MTU of 1500
     public static Integer ReceiveAllocatorBufferSize = 65535;
-    public static Integer ReceiveAllocatorBufferSizeMax = 256 * 1024 -1;
+    public static Integer ReceiveAllocatorBufferSizeMax = 256 * 1024 - 1;
+
     // Stats
     public static boolean Stats_PPS = false;
     public static boolean Stats_bPS = false;
@@ -69,7 +70,6 @@ public final class Config {
                 .addOption("w", "threads", true, "Number of Threads")
                 .addOption("p", "ppsStats", false, "Enable Packets per Second Stats")
                 .addOption("b", "bpsStats", false, "Enable Bits per Second Stats")
-
 
                 .addOption("gameUpdateRate", true, "Game Server Info Update retrieval interval in Milliseconds")
                 .addOption("gameUpdateTimeout", true, "Game Server Info Update Socket Timeout in Milliseconds")
@@ -89,7 +89,8 @@ public final class Config {
                 .addOption("a0", "receiveAllocatorBuf", true, "Initial Receive ByteBuf Allocator Buffer Size (must be smaller than Max)")
                 .addOption("a1", "receiveAllocatorBufMax", true, "Maximum Receive ByteBuf Allocator Buffer Size")
                 /* LogLevel */
-                .addOption("s", "logLevel", true, "Change the Log output verbosity. In order of most to least Verbose: [ALL,TRACE,DEBUG,INFO,WARN,ERROR,FATAL,OFF]");
+                .addOption("s", "logLevel", true, "Change the Log output verbosity." +
+                        " In order of most to least Verbose: [ALL,TRACE,DEBUG,INFO,WARN,ERROR,FATAL,OFF]");
     }
 
 
@@ -173,7 +174,7 @@ public final class Config {
                 ReceiveAllocatorBufferSizeMax = Integer.parseInt(cmd.getOptionValue("receiveAllocatorBufMax"));
             }
             if (cmd.getOptionValue("receiveAllocatorBuf") != null) {
-                ReceiveAllocatorBufferSize = Math.min(Integer.parseInt(cmd.getOptionValue("receiveAllocatorBuf")),ReceiveAllocatorBufferSizeMax);
+                ReceiveAllocatorBufferSize = Math.min(Integer.parseInt(cmd.getOptionValue("receiveAllocatorBuf")), ReceiveAllocatorBufferSizeMax);
             }
 
             if (cmd.getOptionValue("logLevel") != null) {
@@ -181,6 +182,7 @@ public final class Config {
             }
 
         }
+
         //Set Log Level Programmatically without relying on the log4J2.xml
         LoggerContext ctx = (LoggerContext) LogManager.getContext(false);
         Configuration config = ctx.getConfiguration();
@@ -206,20 +208,17 @@ public final class Config {
         ChallengeCodeTTL = Long.parseLong(Data.getProperty("ChallengeCodeTTL", String.valueOf(ChallengeCodeTTL)));
 
         LocalServer = new InetSocketAddress(InetAddress.getByName(Data.getProperty("LocalServerIPAddress",
-                InetAddress.getLoopbackAddress().getHostAddress())), Integer.parseInt(Data.getProperty("LocalServerPort",
-                "27016")));
-        GameServer  = new InetSocketAddress(InetAddress.getByName(Data.getProperty("GameServerIPAddress",
-                InetAddress.getLoopbackAddress().getHostAddress())), Integer.parseInt(Data.getProperty("GameServerPort",
-                "27015")));
+                InetAddress.getLoopbackAddress().getHostAddress())), Integer.parseInt(Data.getProperty("LocalServerPort", "27016")));
+        GameServer = new InetSocketAddress(InetAddress.getByName(Data.getProperty("GameServerIPAddress",
+                InetAddress.getLoopbackAddress().getHostAddress())), Integer.parseInt(Data.getProperty("GameServerPort", "27015")));
 
         ReceiveBufferSize = Integer.parseInt(Data.getProperty("ReceiveBufferSize", String.valueOf(ReceiveBufferSize)));
         SendBufferSize = Integer.parseInt(Data.getProperty("SendBufferSize", String.valueOf(SendBufferSize)));
         ReceiveAllocatorBufferSizeMax = Integer.parseInt(Data.getProperty("ReceiveAllocatorBufferSizeMax", String.valueOf(ReceiveAllocatorBufferSizeMax)));
-        ReceiveAllocatorBufferSize = Math.min(Integer.parseInt(Data.getProperty("ReceiveAllocatorBufferSize", String.valueOf(ReceiveAllocatorBufferSize))),ReceiveAllocatorBufferSizeMax);
+        ReceiveAllocatorBufferSize = Math.min(Integer.parseInt(Data.getProperty("ReceiveAllocatorBufferSize", String.valueOf(ReceiveAllocatorBufferSize))),
+                ReceiveAllocatorBufferSizeMax);
 
         LogLevel = Level.toLevel(Data.getProperty("LogLevel", LogLevel.toString()));
-
-        Data.clear(); // Clear Properties
     }
 
     private static void displayConfig() {
