@@ -1,8 +1,8 @@
 package com.aayushatharva.sourcecenginequerycacher;
 
 import com.aayushatharva.sourcecenginequerycacher.utils.CacheHub;
+import static com.aayushatharva.sourcecenginequerycacher.utils.CacheHub.ByteKey;
 import com.aayushatharva.sourcecenginequerycacher.utils.Config;
-import com.aayushatharva.sourcecenginequerycacher.utils.Packets;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufUtil;
 import io.netty.channel.ChannelHandler;
@@ -30,6 +30,7 @@ import static com.aayushatharva.sourcecenginequerycacher.utils.Packets.A2S_RULES
 import static com.aayushatharva.sourcecenginequerycacher.utils.Packets.A2S_RULES_REQUEST_HEADER;
 import static com.aayushatharva.sourcecenginequerycacher.utils.Packets.A2S_RULES_REQUEST_HEADER_LEN;
 import static com.aayushatharva.sourcecenginequerycacher.utils.Packets.LEN_CODE;
+
 
 @ChannelHandler.Sharable
 final class Handler extends SimpleChannelInboundHandler<DatagramPacket> {
@@ -114,7 +115,7 @@ final class Handler extends SimpleChannelInboundHandler<DatagramPacket> {
     }
 
     private void sendA2SChallenge(ChannelHandlerContext ctx, DatagramPacket datagramPacket) {
-        byte[] challenge = CacheHub.CHALLENGE_MAP.computeIfAbsent(datagramPacket.sender().getAddress().getAddress(), key -> {
+        byte[] challenge = CacheHub.CHALLENGE_MAP.computeIfAbsent(new ByteKey(datagramPacket.sender().getAddress().getAddress()), key -> {
             // Generate Random Data of 4 Bytes only if there is no challenge code for this IP
             byte[] challengeCode = new byte[LEN_CODE];
             RANDOM.nextBytes(challengeCode);
