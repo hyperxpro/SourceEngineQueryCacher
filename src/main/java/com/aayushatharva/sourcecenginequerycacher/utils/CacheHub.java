@@ -59,7 +59,7 @@ public final class CacheHub {
 
         this.value = result;
       }
-      public byte[] getValue() {
+      public int getValue() {
         return this.value;
       }
       public boolean equals(ByteKey bk) {
