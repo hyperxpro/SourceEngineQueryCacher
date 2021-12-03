@@ -121,10 +121,6 @@ final class Handler extends SimpleChannelInboundHandler<DatagramPacket> {
             RANDOM.nextBytes(challengeCode);
             return challengeCode;
         });
-        if (logger.isTraceEnabled()) {
-            logger.trace("Sending Challenge Code ({}) to {}:{} [CODE SENT]", toHexString(challenge),
-                    datagramPacket.sender().getAddress().getHostAddress(), datagramPacket.sender().getPort());
-        }
         // Send A2S CHALLENGE Packet
         ByteBuf byteBuf = ctx.alloc().buffer();
         byteBuf.writeBytes(A2S_CHALLENGE_RESPONSE_HEADER.retainedDuplicate());

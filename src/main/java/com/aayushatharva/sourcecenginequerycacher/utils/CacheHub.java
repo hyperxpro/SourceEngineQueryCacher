@@ -40,7 +40,7 @@ public final class CacheHub {
        * Wrapper for IP Address Bytes (rightmost 2 bytes)
        *
        * This is a VERY specific wrapper class for a very specific use case
-       * with memory footprint and speed of comparison in mind.
+       * with memory footprint and speed of comparison and map traversal in mind.
        * There are no NullPointer checks, no Class equality checks, no length checks,
        * no safe fallbacks. Consider yourself warned!
        *
@@ -59,17 +59,16 @@ public final class CacheHub {
 
         this.value = result;
       }
-      public int getValue() {
-        return this.value;
-      }
-      public boolean equals(ByteKey bk) {
+      @Override
+      public boolean equals(Object bk) {
         /**
          * This is very unsafe if used with any other object.
          * Make sure to only ever use this in an environment where
          * you can make sure that you compare only to other ByteKeys
          */
-        return this.value == bk.getValue();
+        return this.value == ((ByteKey)bk).value;
       }
+      @Override
       public int hashCode() {
         //if hashCode is 0 then it will get handled as if it was Null
         return this.value;
