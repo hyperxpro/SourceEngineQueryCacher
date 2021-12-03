@@ -59,13 +59,16 @@ public final class CacheHub {
 
         this.value = result;
       }
+      public byte[] getValue() {
+        return this.value;
+      }
       public boolean equals(ByteKey bk) {
         /**
          * This is very unsafe if used with any other object.
          * Make sure to only ever use this in an environment where
          * you can make sure that you compare only to other ByteKeys
          */
-        return this.value == bk.value;
+        return this.value == bk.getValue();
       }
       public int hashCode() {
         //if hashCode is 0 then it will get handled as if it was Null
