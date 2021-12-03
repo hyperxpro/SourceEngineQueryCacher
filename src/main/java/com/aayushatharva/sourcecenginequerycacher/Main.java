@@ -7,7 +7,6 @@ import com.aayushatharva.sourcecenginequerycacher.utils.CacheHub;
 import com.aayushatharva.sourcecenginequerycacher.utils.Config;
 import com.aayushatharva.sourcecenginequerycacher.utils.Utils;
 import io.netty.bootstrap.Bootstrap;
-import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.AdaptiveRecvByteBufAllocator;
 import io.netty.channel.ChannelFuture;

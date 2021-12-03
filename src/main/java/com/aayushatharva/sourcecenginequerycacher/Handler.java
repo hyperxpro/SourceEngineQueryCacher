@@ -39,13 +39,13 @@ final class Handler extends SimpleChannelInboundHandler<DatagramPacket> {
     private static final SplittableRandom RANDOM = new SplittableRandom();
 
     protected void channelRead0(ChannelHandlerContext ctx, DatagramPacket datagramPacket) {
-
+        int pckLength = datagramPacket.content().readableBytes();
         if (Config.Stats_PPS) {
             Stats.PPS.incrementAndGet();
         }
 
         if (Config.Stats_bPS) {
-            Stats.BPS.addAndGet(datagramPacket.content().readableBytes());
+            Stats.BPS.addAndGet(pckLength);
         }
 
         /*
@@ -57,7 +57,7 @@ final class Handler extends SimpleChannelInboundHandler<DatagramPacket> {
             return;
         }
 
-        int pckLength = datagramPacket.content().readableBytes();
+
 
         /*
          * Packet size of 25, 29 bytes and 9 bytes only will be processed rest will dropped.
@@ -102,9 +102,9 @@ final class Handler extends SimpleChannelInboundHandler<DatagramPacket> {
                  *
                  * 2. Validate A2S_INFO Challenge Response (length==29) and send A2S_INFO Packet.
                  */
-                if (datagramPacket.content().readableBytes() == A2S_INFO_REQUEST_LEN) {
+                if (pckLength == A2S_INFO_REQUEST_LEN) {
                     sendA2SChallenge(ctx, datagramPacket);
-                } else if (datagramPacket.content().readableBytes() == A2S_INFO_REQUEST_LEN + LEN_CODE) { // 4 Byte padded challenge Code
+                } else if (pckLength == A2S_INFO_REQUEST_LEN + LEN_CODE) { // 4 Byte padded challenge Code
                     sendA2SInfoResponse(ctx, datagramPacket);
                 }
                 return;
@@ -121,7 +121,10 @@ final class Handler extends SimpleChannelInboundHandler<DatagramPacket> {
             RANDOM.nextBytes(challengeCode);
             return challengeCode;
         });
-
+        if (logger.isTraceEnabled()) {
+            logger.trace("Sending Challenge Code ({}) to {}:{} [CODE SENT]", toHexString(challenge),
+                    datagramPacket.sender().getAddress().getHostAddress(), datagramPacket.sender().getPort());
+        }
         // Send A2S CHALLENGE Packet
         ByteBuf byteBuf = ctx.alloc().buffer();
         byteBuf.writeBytes(A2S_CHALLENGE_RESPONSE_HEADER.retainedDuplicate());
