@@ -152,7 +152,9 @@ final class Handler extends SimpleChannelInboundHandler<DatagramPacket> {
 
     private boolean isIPValid(DatagramPacket datagramPacket, byte[] challengeCode, String logTrace) {
         // Look for Client IP Address in Cache and load Challenge Code Value from it.
-        byte[] storedChallengeCode = CacheHub.CHALLENGE_MAP.remove(datagramPacket.sender().getAddress().getAddress());
+        // some services reuse the same challenge code to retrieve all three packet types.
+        // We want that as it helps minimize traffic in the internet. Hence we only get() the code, not remove() it here.
+        byte[] storedChallengeCode = CacheHub.CHALLENGE_MAP.get(new ByteKey(datagramPacket.sender().getAddress().getAddress()));
 
         // If Cache Value is not NULL it means we found the IP, and now we'll validate it.
         if (storedChallengeCode != null) {
