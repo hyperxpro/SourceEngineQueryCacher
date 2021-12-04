@@ -53,14 +53,9 @@ public final class Cache {
         private final int value;
 
         public ByteKey(byte[] array) {
-            int i = array.length;
-            int result = 0;
-
-            //Only use the rightmost Bytes for storing. If array.length < 2 then we die.
-            while (--i >= array.length - 2)
-                result = 31 * result + array[i];
-
-            this.value = result;
+            int i = array.length - 1;
+            //Only use the rightmost 2 Bytes for storing. If array.length < 2 then we die.
+            this.value = (array[i-1] & 0xFF) << 8 | (array[i] & 0xFF);
         }
 
         @Override
