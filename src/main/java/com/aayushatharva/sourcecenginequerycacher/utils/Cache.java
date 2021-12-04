@@ -65,10 +65,6 @@ public final class Cache {
 
         @Override
         public boolean equals(Object o) {
-            if (!(o instanceof ByteKey)) {
-                return false;
-            }
-
             /*
              * This is very unsafe if used with any other object.
              * Make sure to only ever use this in an environment where
