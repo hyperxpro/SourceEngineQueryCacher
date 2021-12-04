@@ -11,7 +11,6 @@ import io.netty.channel.socket.DatagramPacket;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.SplittableRandom;
 
@@ -38,12 +37,12 @@ final class Handler extends SimpleChannelInboundHandler<DatagramPacket> {
     private static final SplittableRandom RANDOM = new SplittableRandom();
 
     protected void channelRead0(ChannelHandlerContext ctx, DatagramPacket datagramPacket) {
-
+        int pckLength = datagramPacket.content().readableBytes();
         if (Config.Stats_PPS)
             Stats.PPS.incrementAndGet();
 
         if (Config.Stats_bPS)
-            Stats.BPS.addAndGet(datagramPacket.content().readableBytes());
+            Stats.BPS.addAndGet(pckLength);
 
         /*
          * If A2S_INFO or A2S_PLAYER or A2S_RULES is not readable, drop request because we've nothing to reply.
@@ -53,8 +52,6 @@ final class Handler extends SimpleChannelInboundHandler<DatagramPacket> {
                     Cache.A2S_INFO, Cache.A2S_PLAYER, Cache.A2S_RULES);
             return;
         }
-
-        int pckLength = datagramPacket.content().readableBytes();
 
         /*
          * Packet size of 25, 29 bytes and 9 bytes only will be processed rest will dropped.
@@ -112,7 +109,7 @@ final class Handler extends SimpleChannelInboundHandler<DatagramPacket> {
     }
 
     private void sendA2SChallenge(ChannelHandlerContext ctx, DatagramPacket datagramPacket) {
-        byte[] challenge = Cache.CHALLENGE_MAP.computeIfAbsent(ByteBuffer.wrap(datagramPacket.sender().getAddress().getAddress()), key -> {
+        byte[] challenge = Cache.CHALLENGE_MAP.computeIfAbsent(new Cache.ByteKey(datagramPacket.sender().getAddress().getAddress()), key -> {
             // Generate Random Data of 4 Bytes only if there is no challenge code for this IP
             byte[] challengeCode = new byte[LEN_CODE];
             RANDOM.nextBytes(challengeCode);
@@ -149,7 +146,9 @@ final class Handler extends SimpleChannelInboundHandler<DatagramPacket> {
 
     private boolean isIPValid(DatagramPacket datagramPacket, byte[] challengeCode, String logTrace) {
         // Look for Client IP Address in Cache and load Challenge Code Value from it.
-        byte[] storedChallengeCode = Cache.CHALLENGE_MAP.remove(ByteBuffer.wrap(datagramPacket.sender().getAddress().getAddress()));
+        // Some services reuse the same challenge code to retrieve all three packet types.
+        // We want that as it helps minimize traffic in the internet. Hence, we only get() the code, not remove() it here.
+        byte[] storedChallengeCode = Cache.CHALLENGE_MAP.get(new Cache.ByteKey(datagramPacket.sender().getAddress().getAddress()));
 
         // If Cache Value is not NULL it means we found the IP, and now we'll validate it.
         if (storedChallengeCode != null) {
