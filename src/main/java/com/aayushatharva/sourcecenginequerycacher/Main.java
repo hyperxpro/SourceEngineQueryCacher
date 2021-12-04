@@ -3,11 +3,9 @@ package com.aayushatharva.sourcecenginequerycacher;
 import com.aayushatharva.sourcecenginequerycacher.gameserver.a2sinfo.InfoClient;
 import com.aayushatharva.sourcecenginequerycacher.gameserver.a2splayer.PlayerClient;
 import com.aayushatharva.sourcecenginequerycacher.gameserver.a2srules.RulesClient;
-import com.aayushatharva.sourcecenginequerycacher.utils.CacheHub;
+import com.aayushatharva.sourcecenginequerycacher.utils.Cache;
 import com.aayushatharva.sourcecenginequerycacher.utils.Config;
-import com.aayushatharva.sourcecenginequerycacher.utils.Utils;
 import io.netty.bootstrap.Bootstrap;
-import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.AdaptiveRecvByteBufAllocator;
 import io.netty.channel.ChannelFuture;
@@ -20,6 +18,9 @@ import io.netty.channel.epoll.EpollDatagramChannel;
 import io.netty.channel.epoll.EpollEventLoopGroup;
 import io.netty.channel.socket.InternetProtocolFamily;
 import io.netty.channel.unix.UnixChannelOption;
+import io.netty.incubator.channel.uring.IOUring;
+import io.netty.incubator.channel.uring.IOUringDatagramChannel;
+import io.netty.incubator.channel.uring.IOUringEventLoopGroup;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -45,13 +46,19 @@ public final class Main {
             // Setup configurations
             Config.setup(args);
 
-            // Use Epoll when available
-            if (Epoll.isAvailable()) {
-                eventLoopGroup = new EpollEventLoopGroup(Config.Threads);
+            if (IOUring.isAvailable()) {
+                eventLoopGroup = new IOUringEventLoopGroup(Config.Threads);
+                logger.info("Using High Performance IO_URING Transport");
             } else {
-                // Epoll is requested but Epoll is not available then we'll throw error and shut down.
-                System.err.println("Epoll Transport is not available, shutting down...");
-                System.exit(1);
+                logger.info("High Performance IO_URING Transport is not available");
+
+                if (Epoll.isAvailable()) {
+                    eventLoopGroup = new EpollEventLoopGroup(Config.Threads);
+                } else {
+                    // Epoll is requested but Epoll is not available, we'll throw error and shut down.
+                    System.err.println("Epoll Transport is not available, shutting down...");
+                    System.exit(1);
+                }
             }
 
             List<ChannelFuture> channelFutureList = new ArrayList<>();
@@ -59,7 +66,13 @@ public final class Main {
 
             Bootstrap bootstrap = new Bootstrap()
                     .group(eventLoopGroup)
-                    .channelFactory(() -> new EpollDatagramChannel(InternetProtocolFamily.IPv4))
+                    .channelFactory(() -> {
+                        if (IOUring.isAvailable()) {
+                            return new IOUringDatagramChannel(InternetProtocolFamily.IPv4);
+                        } else {
+                            return new EpollDatagramChannel(InternetProtocolFamily.IPv4);
+                        }
+                    })
                     .option(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)
                     .option(ChannelOption.SO_SNDBUF, Config.SendBufferSize)
                     .option(ChannelOption.SO_RCVBUF, Config.ReceiveBufferSize)
@@ -93,12 +106,16 @@ public final class Main {
                 channelFuture.sync();
             }
 
-            if (Config.Stats_bPS || Config.Stats_PPS) stats = new Stats();
+            if (Config.Stats_bPS || Config.Stats_PPS)
+                stats = new Stats();
+
             infoClient = new InfoClient("A2SInfoClient");
             playerClient = new PlayerClient("A2SPlayerClient");
             rulesClient = new RulesClient("A2SRulesClient");
 
-            if (Config.Stats_bPS || Config.Stats_PPS) stats.start();
+            if (Config.Stats_bPS || Config.Stats_PPS)
+                stats.start();
+
             infoClient.start();
             playerClient.start();
             rulesClient.start();
@@ -115,11 +132,7 @@ public final class Main {
         infoClient.shutdown();
         playerClient.shutdown();
         rulesClient.shutdown();
-        CacheHub.CHALLENGE_MAP.clear();
-
-        Utils.safeRelease(CacheHub.A2S_INFO);
-        Utils.safeRelease(CacheHub.A2S_PLAYER);
-        Utils.safeRelease(CacheHub.A2S_RULES);
+        Cache.CHALLENGE_MAP.clear();
 
         if (Config.Stats_bPS || Config.Stats_PPS) stats.shutdown();
         future.get();

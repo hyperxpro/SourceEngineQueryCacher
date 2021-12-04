@@ -1,6 +1,6 @@
 package com.aayushatharva.sourcecenginequerycacher.gameserver.a2sinfo;
 
-import com.aayushatharva.sourcecenginequerycacher.utils.CacheHub;
+import com.aayushatharva.sourcecenginequerycacher.utils.Cache;
 import com.aayushatharva.sourcecenginequerycacher.utils.Packets;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufUtil;
@@ -24,15 +24,15 @@ final class InfoHandler extends SimpleChannelInboundHandler<DatagramPacket> {
             ctx.writeAndFlush(responseBuf, ctx.voidPromise());
         } else if (ByteBufUtil.equals(Packets.A2S_INFO_RESPONSE_HEADER, datagramPacket.content().slice(0, Packets.A2S_INFO_RESPONSE_HEADER_LEN))) {
             // Set new Packet Data
-            CacheHub.A2S_INFO.clear().writeBytes(datagramPacket.content());
+            Cache.A2S_INFO.clear().writeBytes(datagramPacket.content());
 
-            logger.debug("New A2SInfo Update Cached Successfully; Size: {}", CacheHub.A2S_INFO.readableBytes());
+            logger.debug("New A2SInfo Update Cached Successfully; Size: {}", Cache.A2S_INFO.readableBytes());
         } else if (ByteBufUtil.equals(Packets.A2S_INFO_RESPONSE_HEADER_SPLIT, datagramPacket.content().slice(0, Packets.A2S_INFO_RESPONSE_HEADER_SPLIT_LEN))) {
             // Set new Packet Data
             // todo: Make sure we get and send all packets.
-            CacheHub.A2S_INFO.clear().writeBytes(datagramPacket.content());
+            Cache.A2S_INFO.clear().writeBytes(datagramPacket.content());
 
-            logger.debug("[SPLIT PACKET] New A2SInfo Update Cached Successfully; Size: {}", CacheHub.A2S_INFO.readableBytes());
+            logger.debug("[SPLIT PACKET] New A2SInfo Update Cached Successfully; Size: {}", Cache.A2S_INFO.readableBytes());
         } else {
             logger.error("Received unsupported A2S Info Response from Game Server: {}", ByteBufUtil.hexDump(datagramPacket.content()).toUpperCase());
         }

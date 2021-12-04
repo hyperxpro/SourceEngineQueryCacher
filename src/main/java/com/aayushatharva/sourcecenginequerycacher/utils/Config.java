@@ -93,7 +93,6 @@ public final class Config {
                         " In order of most to least Verbose: [ALL,TRACE,DEBUG,INFO,WARN,ERROR,FATAL,OFF]");
     }
 
-
     public static void setup(String[] args) throws ParseException, IOException {
 
         CommandLineParser parser = new DefaultParser();

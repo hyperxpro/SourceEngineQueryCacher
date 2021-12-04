@@ -1,8 +1,7 @@
 package com.aayushatharva.sourcecenginequerycacher;
 
-import com.aayushatharva.sourcecenginequerycacher.utils.CacheHub;
+import com.aayushatharva.sourcecenginequerycacher.utils.Cache;
 import com.aayushatharva.sourcecenginequerycacher.utils.Config;
-import com.aayushatharva.sourcecenginequerycacher.utils.Packets;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufUtil;
 import io.netty.channel.ChannelHandler;
@@ -12,6 +11,7 @@ import io.netty.channel.socket.DatagramPacket;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.SplittableRandom;
 
@@ -39,20 +39,18 @@ final class Handler extends SimpleChannelInboundHandler<DatagramPacket> {
 
     protected void channelRead0(ChannelHandlerContext ctx, DatagramPacket datagramPacket) {
 
-        if (Config.Stats_PPS) {
+        if (Config.Stats_PPS)
             Stats.PPS.incrementAndGet();
-        }
 
-        if (Config.Stats_bPS) {
+        if (Config.Stats_bPS)
             Stats.BPS.addAndGet(datagramPacket.content().readableBytes());
-        }
 
         /*
          * If A2S_INFO or A2S_PLAYER or A2S_RULES is not readable, drop request because we've nothing to reply.
          */
-        if (!CacheHub.A2S_INFO.isReadable() || !CacheHub.A2S_PLAYER.isReadable() || !CacheHub.A2S_RULES.isReadable()) {
+        if (!Cache.A2S_INFO.isReadable() || !Cache.A2S_PLAYER.isReadable() || !Cache.A2S_RULES.isReadable()) {
             logger.error("Dropping query request because Cache is not ready. A2S_INFO: {}, A2S_PLAYER: {}, A2S_RULES: {}",
-                    CacheHub.A2S_INFO, CacheHub.A2S_PLAYER, CacheHub.A2S_RULES);
+                    Cache.A2S_INFO, Cache.A2S_PLAYER, Cache.A2S_RULES);
             return;
         }
 
@@ -101,9 +99,9 @@ final class Handler extends SimpleChannelInboundHandler<DatagramPacket> {
                  *
                  * 2. Validate A2S_INFO Challenge Response (length==29) and send A2S_INFO Packet.
                  */
-                if (datagramPacket.content().readableBytes() == A2S_INFO_REQUEST_LEN) {
+                if (pckLength == A2S_INFO_REQUEST_LEN) {
                     sendA2SChallenge(ctx, datagramPacket);
-                } else if (datagramPacket.content().readableBytes() == A2S_INFO_REQUEST_LEN + LEN_CODE) { // 4 Byte padded challenge Code
+                } else if (pckLength == A2S_INFO_REQUEST_LEN + LEN_CODE) { // 4 Byte padded challenge Code
                     sendA2SInfoResponse(ctx, datagramPacket);
                 }
                 return;
@@ -114,7 +112,7 @@ final class Handler extends SimpleChannelInboundHandler<DatagramPacket> {
     }
 
     private void sendA2SChallenge(ChannelHandlerContext ctx, DatagramPacket datagramPacket) {
-        byte[] challenge = CacheHub.CHALLENGE_MAP.computeIfAbsent(datagramPacket.sender().getAddress().getAddress(), key -> {
+        byte[] challenge = Cache.CHALLENGE_MAP.computeIfAbsent(ByteBuffer.wrap(datagramPacket.sender().getAddress().getAddress()), key -> {
             // Generate Random Data of 4 Bytes only if there is no challenge code for this IP
             byte[] challengeCode = new byte[LEN_CODE];
             RANDOM.nextBytes(challengeCode);
@@ -123,7 +121,7 @@ final class Handler extends SimpleChannelInboundHandler<DatagramPacket> {
 
         // Send A2S CHALLENGE Packet
         ByteBuf byteBuf = ctx.alloc().buffer();
-        byteBuf.writeBytes(A2S_CHALLENGE_RESPONSE_HEADER.retainedDuplicate());
+        byteBuf.writeBytes(A2S_CHALLENGE_RESPONSE_HEADER);
         byteBuf.writeBytes(challenge);
         ctx.writeAndFlush(new DatagramPacket(byteBuf, datagramPacket.sender()), ctx.voidPromise());
     }
@@ -131,27 +129,27 @@ final class Handler extends SimpleChannelInboundHandler<DatagramPacket> {
     private void sendA2SPlayerResponse(ChannelHandlerContext ctx, DatagramPacket datagramPacket) {
         if (isIPValid(datagramPacket, Arrays.copyOfRange(ByteBufUtil.getBytes(datagramPacket.content()),
                 A2S_PLAYER_CODE_POS, A2S_PLAYER_CODE_POS + LEN_CODE), "A2S_PLAYER")) {
-            ctx.writeAndFlush(new DatagramPacket(CacheHub.A2S_PLAYER.retainedDuplicate(), datagramPacket.sender()), ctx.voidPromise());
+            ctx.writeAndFlush(new DatagramPacket(Cache.A2S_PLAYER, datagramPacket.sender()), ctx.voidPromise());
         }
     }
 
     private void sendA2SRulesResponse(ChannelHandlerContext ctx, DatagramPacket datagramPacket) {
         if (isIPValid(datagramPacket, Arrays.copyOfRange(ByteBufUtil.getBytes(datagramPacket.content()),
                 A2S_RULES_CODE_POS, A2S_RULES_CODE_POS + LEN_CODE), "A2S_RULES")) {
-            ctx.writeAndFlush(new DatagramPacket(CacheHub.A2S_RULES.retainedDuplicate(), datagramPacket.sender()), ctx.voidPromise());
+            ctx.writeAndFlush(new DatagramPacket(Cache.A2S_RULES, datagramPacket.sender()), ctx.voidPromise());
         }
     }
 
     private void sendA2SInfoResponse(ChannelHandlerContext ctx, DatagramPacket datagramPacket) {
         if (isIPValid(datagramPacket, Arrays.copyOfRange(ByteBufUtil.getBytes(datagramPacket.content()),
                 A2S_INFO_CODE_POS, A2S_INFO_CODE_POS + LEN_CODE), "A2S_INFO")) {
-            ctx.writeAndFlush(new DatagramPacket(CacheHub.A2S_INFO.retainedDuplicate(), datagramPacket.sender()), ctx.voidPromise());
+            ctx.writeAndFlush(new DatagramPacket(Cache.A2S_INFO, datagramPacket.sender()), ctx.voidPromise());
         }
     }
 
     private boolean isIPValid(DatagramPacket datagramPacket, byte[] challengeCode, String logTrace) {
         // Look for Client IP Address in Cache and load Challenge Code Value from it.
-        byte[] storedChallengeCode = CacheHub.CHALLENGE_MAP.remove(datagramPacket.sender().getAddress().getAddress());
+        byte[] storedChallengeCode = Cache.CHALLENGE_MAP.remove(ByteBuffer.wrap(datagramPacket.sender().getAddress().getAddress()));
 
         // If Cache Value is not NULL it means we found the IP, and now we'll validate it.
         if (storedChallengeCode != null) {
