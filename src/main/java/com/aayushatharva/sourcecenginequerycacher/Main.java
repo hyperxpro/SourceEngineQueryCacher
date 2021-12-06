@@ -106,15 +106,14 @@ public final class Main {
                 channelFuture.sync();
             }
 
-            if (Config.Stats_bPS || Config.Stats_PPS)
+            if (Config.Stats_bPS || Config.Stats_PPS) {
                 stats = new Stats();
+                stats.start();
+            }
 
             infoClient = new InfoClient("A2SInfoClient");
             playerClient = new PlayerClient("A2SPlayerClient");
             rulesClient = new RulesClient("A2SRulesClient");
-
-            if (Config.Stats_bPS || Config.Stats_PPS)
-                stats.start();
 
             infoClient.start();
             playerClient.start();
@@ -134,7 +133,9 @@ public final class Main {
         rulesClient.shutdown();
         Cache.CHALLENGE_MAP.clear();
 
-        if (Config.Stats_bPS || Config.Stats_PPS) stats.shutdown();
+        if (Config.Stats_bPS || Config.Stats_PPS)
+            stats.shutdown();
+
         future.get();
     }
 }

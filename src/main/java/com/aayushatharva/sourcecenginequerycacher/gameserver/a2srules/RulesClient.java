@@ -31,7 +31,6 @@ public final class RulesClient extends Thread {
                     .option(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)
                     .option(ChannelOption.SO_SNDBUF, Config.SendBufferSize)
                     .option(ChannelOption.SO_RCVBUF, Config.ReceiveBufferSize)
-                    .option(EpollChannelOption.MAX_DATAGRAM_PAYLOAD_SIZE, 1400)
                     .option(ChannelOption.RCVBUF_ALLOCATOR, new AdaptiveRecvByteBufAllocator(Config.ReceiveAllocatorBufferSizeMin,
                             Config.ReceiveAllocatorBufferSize, Config.ReceiveAllocatorBufferSizeMax))
                     .handler(new RulesHandler());
@@ -39,7 +38,7 @@ public final class RulesClient extends Thread {
             Channel channel = bootstrap.connect(Config.GameServer).sync().channel();
 
             while (keepRunning) {
-                channel.writeAndFlush(Packets.A2S_RULES_CHALLENGE_REQUEST_2.retainedDuplicate()).sync();
+                channel.writeAndFlush(Packets.A2S_RULES_CHALLENGE_REQUEST_2).sync();
                 try{
                     sleep(Config.GameUpdateInterval);
                 } catch(InterruptedException e){

@@ -155,13 +155,13 @@ final class Handler extends SimpleChannelInboundHandler<DatagramPacket> {
             // Match received challenge code against Cache Stored challenge code
             if (Arrays.equals(storedChallengeCode, challengeCode)) {
                 if (logger.isDebugEnabled()) {
-                    logger.debug("Valid Challenge Code ({}) received from {}:{} [{}][REQUEST ACCEPTED]", toHexString(challengeCode),
+                    logger.debug("Valid Challenge Code ({}) received from {}:{} [{}][REQUEST ACCEPTED]", ByteBufUtil.hexDump(challengeCode),
                             datagramPacket.sender().getAddress().getHostAddress(), datagramPacket.sender().getPort(), logTrace);
                 }
                 return true;
             } else {
                 if (logger.isDebugEnabled()) {
-                    logger.debug("Invalid Challenge Code ({}) received from {}:{} Expected Code: {} [{}][REQUEST DROPPED]", toHexString(challengeCode),
+                    logger.debug("Invalid Challenge Code ({}) received from {}:{} Expected Code: {} [{}][REQUEST DROPPED]", ByteBufUtil.hexDump(challengeCode),
                             datagramPacket.sender().getAddress().getHostAddress(), datagramPacket.sender().getPort(), storedChallengeCode, logTrace);
                 }
                 return false;
@@ -169,7 +169,7 @@ final class Handler extends SimpleChannelInboundHandler<DatagramPacket> {
         } else {
             if (logger.isDebugEnabled()) {
                 // If you see lots of messages like this in the log, try raising the ChallengeCodeTTL (best practise is 2000)
-                logger.debug("Unknown (Old?) Challenge Code ({}) received from {}:{} [{}][REQUEST DROPPED]", toHexString(challengeCode),
+                logger.debug("Unknown (Old?) Challenge Code ({}) received from {}:{} [{}][REQUEST DROPPED]", ByteBufUtil.hexDump(challengeCode),
                         datagramPacket.sender().getAddress().getHostAddress(), datagramPacket.sender().getPort(), logTrace);
             }
             return false;
@@ -186,21 +186,5 @@ final class Handler extends SimpleChannelInboundHandler<DatagramPacket> {
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
         logger.error("Caught Error", cause);
-    }
-
-    /**
-     * Convert Byte Array into Hex String
-     *
-     * @param bytes Byte Array
-     * @return Hex String
-     */
-    private String toHexString(final byte[] bytes) {
-        char[] hexChars = new char[bytes.length * 2];
-        for (int j = 0; j < bytes.length; j++) {
-            int v = bytes[j] & 0xFF;
-            hexChars[j * 2] = "0123456789ABCDEF".toCharArray()[v >>> 4];
-            hexChars[j * 2 + 1] = "0123456789ABCDEF".toCharArray()[v & 0x0F];
-        }
-        return new String(hexChars);
     }
 }

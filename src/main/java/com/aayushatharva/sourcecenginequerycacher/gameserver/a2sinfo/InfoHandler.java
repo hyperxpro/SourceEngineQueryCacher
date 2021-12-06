@@ -18,7 +18,7 @@ final class InfoHandler extends SimpleChannelInboundHandler<DatagramPacket> {
     protected void channelRead0(ChannelHandlerContext ctx, DatagramPacket datagramPacket) {
         if (ByteBufUtil.equals(Packets.A2S_CHALLENGE_RESPONSE_HEADER, datagramPacket.content().slice(0, Packets.A2S_CHALLENGE_RESPONSE_HEADER_LEN))) {
             ByteBuf responseBuf = ctx.alloc().buffer()
-                    .writeBytes(Packets.A2S_INFO_REQUEST.retainedDuplicate())
+                    .writeBytes(Packets.A2S_INFO_REQUEST)
                     .writeBytes(datagramPacket.content().slice(Packets.A2S_CHALLENGE_RESPONSE_CODE_POS, Packets.LEN_CODE));
 
             ctx.writeAndFlush(responseBuf, ctx.voidPromise());

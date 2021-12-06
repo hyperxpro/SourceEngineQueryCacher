@@ -19,7 +19,7 @@ final class PlayerHandler extends SimpleChannelInboundHandler<DatagramPacket> {
 
         if (ByteBufUtil.equals(Packets.A2S_CHALLENGE_RESPONSE_HEADER, datagramPacket.content().slice(0, Packets.A2S_CHALLENGE_RESPONSE_HEADER_LEN))) {
             ByteBuf responseBuf = ctx.alloc().buffer()
-                    .writeBytes(Packets.A2S_PLAYER_REQUEST_HEADER.retainedDuplicate())
+                    .writeBytes(Packets.A2S_PLAYER_REQUEST_HEADER)
                     .writeBytes(datagramPacket.content().slice(Packets.A2S_CHALLENGE_RESPONSE_CODE_POS, Packets.LEN_CODE));
 
             ctx.writeAndFlush(responseBuf, ctx.voidPromise());
