@@ -60,6 +60,7 @@ class HandlerTest {
         a2sChallenge = Arrays.copyOfRange(Arrays.copyOfRange(responsePacket.getData(), responsePacket.getOffset(), responsePacket.getLength()),
                         5, 9);
     }
+
     @Test
     @Order(2)
     void A2SInfo() throws IOException {
