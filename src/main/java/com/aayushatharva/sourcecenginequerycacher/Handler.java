@@ -98,14 +98,18 @@ final class Handler extends SimpleChannelInboundHandler<DatagramPacket> {
                  */
                 if (pckLength == A2S_INFO_REQUEST_LEN) {
                     sendA2SChallenge(ctx, datagramPacket);
+                    return;
                 } else if (pckLength == A2S_INFO_REQUEST_LEN + LEN_CODE) { // 4 Byte padded challenge Code
                     sendA2SInfoResponse(ctx, datagramPacket);
+                    return;
                 }
-                return;
             }
         }
 
-        dropLog(datagramPacket);
+        if (logger.isDebugEnabled()) {
+            logger.debug("Dropping Packet of Length {} bytes from {}:{}", pckLength,
+                    datagramPacket.sender().getAddress().getHostAddress(), datagramPacket.sender().getPort());
+        }
     }
 
     private void sendA2SChallenge(ChannelHandlerContext ctx, DatagramPacket datagramPacket) {
@@ -173,13 +177,6 @@ final class Handler extends SimpleChannelInboundHandler<DatagramPacket> {
                         datagramPacket.sender().getAddress().getHostAddress(), datagramPacket.sender().getPort(), logTrace);
             }
             return false;
-        }
-    }
-
-    private void dropLog(DatagramPacket packet) {
-        if (logger.isDebugEnabled()) {
-            logger.debug("Dropping Packet of Length {} bytes from {}:{}", packet.content().readableBytes(),
-                    packet.sender().getAddress().getHostAddress(), packet.sender().getPort());
         }
     }
 
