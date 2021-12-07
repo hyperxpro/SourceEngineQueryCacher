@@ -27,7 +27,7 @@ class HandlerTest {
     static void setup() throws InterruptedException {
         main = new Main();
         Main.main(new String[]{"-c", "Cacher.conf"});
-        Thread.sleep(500);
+        Thread.sleep(2500);
     }
 
     @AfterAll
