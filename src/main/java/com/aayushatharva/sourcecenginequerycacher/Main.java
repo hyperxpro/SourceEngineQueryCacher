@@ -117,7 +117,9 @@ public final class Main {
 
             infoClient.start();
             playerClient.start();
-            rulesClient.start();
+
+            if (Config.EnableA2SRule)
+                rulesClient.start();
         } catch (Exception ex) {
             logger.atError().withThrowable(ex).log("Error while Initializing");
         }

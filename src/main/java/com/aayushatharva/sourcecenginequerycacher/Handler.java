@@ -45,16 +45,17 @@ final class Handler extends SimpleChannelInboundHandler<DatagramPacket> {
             Stats.BPS.addAndGet(pckLength);
 
         /*
-         * If A2S_INFO or A2S_PLAYER or A2S_RULES is not readable, drop request because we've nothing to reply.
+         * If A2S_INFO or A2S_PLAYER is not readable or If A2S_RULE is enabled but not readable,
+         * drop request because we've nothing to reply.
          */
-        if (!Cache.A2S_INFO.isReadable() || !Cache.A2S_PLAYER.isReadable() || !Cache.A2S_RULES.isReadable()) {
+        if (!Cache.A2S_INFO.isReadable() || !Cache.A2S_PLAYER.isReadable() || !(Config.EnableA2SRule && !Cache.A2S_RULES.isReadable())) {
             logger.error("Dropping query request because Cache is not ready. A2S_INFO: {}, A2S_PLAYER: {}, A2S_RULES: {}",
                     Cache.A2S_INFO, Cache.A2S_PLAYER, Cache.A2S_RULES);
             return;
         }
 
         /*
-         * Packet size of 25, 29 bytes and 9 bytes only will be processed rest will dropped.
+         * Packet size of 25, 29 bytes and 9 bytes only will be processed rest will be dropped.
          *
          * A2S_INFO = 25 Bytes, 29 bytes with padded challenge code
          * A2S_Player = 9 Bytes
@@ -62,29 +63,31 @@ final class Handler extends SimpleChannelInboundHandler<DatagramPacket> {
          */
         if (pckLength == 9 || pckLength == 25 || pckLength == 29) {
 
-            if (ByteBufUtil.equals(A2S_RULES_REQUEST_HEADER, datagramPacket.content().slice(0, A2S_RULES_REQUEST_HEADER_LEN))) {
+            if (Config.EnableA2SRule && ByteBufUtil.equals(A2S_RULES_REQUEST_HEADER, datagramPacket.content().slice(0, A2S_RULES_REQUEST_HEADER_LEN))) {
 
-                /* 1. Packet equals `A2S_RULES_CHALLENGE_REQUEST_1` or `A2S_RULES_CHALLENGE_REQUEST_2`
+                /*
+                 * 1. Packet equals `A2S_RULES_CHALLENGE_REQUEST_1` or `A2S_RULES_CHALLENGE_REQUEST_2`
                  * then we'll send response of A2S_Challenge Packet.
                  */
                 if (ByteBufUtil.equals(datagramPacket.content(), A2S_RULES_CHALLENGE_REQUEST_2) ||
                         ByteBufUtil.equals(datagramPacket.content(), A2S_RULES_CHALLENGE_REQUEST_1)) {
                     sendA2SChallenge(ctx, datagramPacket);
                 } else {
-                    //2. Validate A2S_RULES Challenge Response and send A2S_Rules Packet.
+                    // 2. Validate A2S_RULES Challenge Response and send A2S_Rules Packet.
                     sendA2SRulesResponse(ctx, datagramPacket);
                 }
                 return;
             } else if (ByteBufUtil.equals(A2S_PLAYER_REQUEST_HEADER, datagramPacket.content().slice(0, A2S_PLAYER_REQUEST_HEADER_LEN))) {
 
-                /* 1. Packet equals to `A2S_PLAYER_CHALLENGE_REQUEST_1` or `A2S_PLAYER_CHALLENGE_REQUEST_2`
+                /*
+                 * 1. Packet equals to `A2S_PLAYER_CHALLENGE_REQUEST_1` or `A2S_PLAYER_CHALLENGE_REQUEST_2`
                  * then we'll send response of A2S_Player Challenge Packet.
                  */
                 if (ByteBufUtil.equals(datagramPacket.content(), A2S_PLAYER_CHALLENGE_REQUEST_2) ||
                         ByteBufUtil.equals(datagramPacket.content(), A2S_PLAYER_CHALLENGE_REQUEST_1)) {
                     sendA2SChallenge(ctx, datagramPacket);
                 } else {
-                    //2. Validate A2S_Player Challenge Response and send A2S_Player Packet.
+                    // 2. Validate A2S_Player Challenge Response and send A2S_Player Packet.
                     sendA2SPlayerResponse(ctx, datagramPacket);
                 }
                 return;
