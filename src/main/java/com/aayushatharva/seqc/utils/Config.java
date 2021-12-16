@@ -138,7 +138,7 @@ public final class Config {
         ChallengeTTL = Long.parseLong(Data.getProperty(CHALLENGE_TTL, String.valueOf(ChallengeTTL)));
 
         ServerAddress = new InetSocketAddress(InetAddress.getByName(Data.getProperty(SERVER_IP, "127.0.0.1")), Integer.parseInt(Data.getProperty(SERVER_PORT, "9110")));
-        GameAddress = new InetSocketAddress(InetAddress.getByName(Data.getProperty(SERVER_IP, "127.0.0.1")), Integer.parseInt(Data.getProperty(SERVER_PORT, "27015")));
+        GameAddress = new InetSocketAddress(InetAddress.getByName(Data.getProperty(GAME_IP, "127.0.0.1")), Integer.parseInt(Data.getProperty(GAME_PORT, "27015")));
 
         SendBufferSize = Integer.parseInt(Data.getProperty(SEND_BUF, String.valueOf(SendBufferSize)));
         ReceiveBufferSize = Integer.parseInt(Data.getProperty(RECEIVE_BUF, String.valueOf(ReceiveBufferSize)));
