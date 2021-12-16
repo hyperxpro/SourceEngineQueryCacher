@@ -26,7 +26,7 @@
         <!-- https://mvnrepository.com/artifact/io.netty/netty-transport-native-epoll -->
         <dependency>
             <groupId>io.netty</groupId>
-            <artifactId>netty-transport-native-epoll</artifactId>
+            <artifactId>netty-all</artifactId>
             <version>4.1.72.Final</version>
         </dependency>
 
