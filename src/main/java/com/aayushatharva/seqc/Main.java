@@ -12,6 +12,7 @@ import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
+import io.netty.channel.FixedRecvByteBufAllocator;
 import io.netty.channel.epoll.Epoll;
 import io.netty.channel.epoll.EpollChannelOption;
 import io.netty.channel.epoll.EpollDatagramChannel;
@@ -80,9 +81,8 @@ public final class Main {
                     .option(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)
                     .option(ChannelOption.SO_SNDBUF, Config.SendBufferSize)
                     .option(ChannelOption.SO_RCVBUF, Config.ReceiveBufferSize)
-                    .option(EpollChannelOption.MAX_DATAGRAM_PAYLOAD_SIZE, 1400)
-                    .option(ChannelOption.RCVBUF_ALLOCATOR, new AdaptiveRecvByteBufAllocator(Config.ReceiveAllocatorBufferSizeMin,
-                            Config.ReceiveAllocatorBufferSize, Config.ReceiveAllocatorBufferSizeMax))
+                    .option(EpollChannelOption.MAX_DATAGRAM_PAYLOAD_SIZE, 256)
+                    .option(ChannelOption.RCVBUF_ALLOCATOR, new FixedRecvByteBufAllocator(Config.ReceiveAllocatorBufferSize))
                     .option(UnixChannelOption.SO_REUSEPORT, true)
                     .option(EpollChannelOption.UDP_GRO, true) // Enable UDP GRO
                     .handler(handler);

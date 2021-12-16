@@ -43,9 +43,7 @@ public final class Config {
     // Buffers
     public static Integer SendBufferSize = 1048576;
     public static Integer ReceiveBufferSize = 1048576;
-    public static Integer ReceiveAllocatorBufferSize = 65535;
-    public static Integer ReceiveAllocatorBufferSizeMin = 20480; //leave this bigger than the standard MTU of 1500
-    public static Integer ReceiveAllocatorBufferSizeMax = (256 * 1024) - 1;
+    public static Integer ReceiveAllocatorBufferSize = 128;
 
     // Stats
     public static boolean Stats_PPS = true;
@@ -69,7 +67,6 @@ public final class Config {
     private static final String SEND_BUF = "SendBufferSize";
     private static final String RECEIVE_BUF = "ReceiveBufferSize";
     private static final String RECEIVE_ALLOC_BUF = "ReceiveAllocatorBufferSize";
-    private static final String RECEIVE_ALLOC_BUF_MAX = "ReceiveAllocatorBufferSizeMax";
     private static final String A2S_INFO_CHALLENGE = "A2SInfoChallenge";
     private static final String A2S_RULE = "A2SRule";
 
@@ -95,8 +92,7 @@ public final class Config {
                 /* Buffers */
                 .addOption(SEND_BUF, true, "Server Send Buffer Size")
                 .addOption(RECEIVE_BUF, true, "Server Receive Buffer Size")
-                .addOption(RECEIVE_ALLOC_BUF, true, "Initial Receive ByteBuf Allocator Buffer Size (must be smaller than Max)")
-                .addOption(RECEIVE_ALLOC_BUF_MAX, true, "Maximum Receive ByteBuf Allocator Buffer Size")
+                .addOption(RECEIVE_ALLOC_BUF, true, "Fixed Receive ByteBuf Allocator Buffer Size")
 
                 /* Protocols */
                 .addOption(A2S_INFO_CHALLENGE, false, "Enable A2SInfo Challenge")
@@ -142,8 +138,7 @@ public final class Config {
 
         SendBufferSize = Integer.parseInt(Data.getProperty(SEND_BUF, String.valueOf(SendBufferSize)));
         ReceiveBufferSize = Integer.parseInt(Data.getProperty(RECEIVE_BUF, String.valueOf(ReceiveBufferSize)));
-        ReceiveAllocatorBufferSize = Math.min(Integer.parseInt(Data.getProperty(RECEIVE_ALLOC_BUF, String.valueOf(ReceiveAllocatorBufferSize))), ReceiveAllocatorBufferSizeMax);
-        ReceiveAllocatorBufferSizeMax = Integer.parseInt(Data.getProperty(RECEIVE_ALLOC_BUF_MAX, String.valueOf(ReceiveAllocatorBufferSizeMax)));
+        ReceiveAllocatorBufferSize = Integer.parseInt(Data.getProperty(RECEIVE_ALLOC_BUF, String.valueOf(ReceiveAllocatorBufferSize)));
 
         EnableA2SInfoChallenge = Boolean.parseBoolean(Data.getProperty(A2S_INFO_CHALLENGE, String.valueOf(EnableA2SInfoChallenge)));
         EnableA2SRule = Boolean.parseBoolean(Data.getProperty(A2S_RULE, String.valueOf(EnableA2SRule)));
@@ -166,7 +161,6 @@ public final class Config {
         logger.info("SendBufferSize: " + SendBufferSize);
         logger.info("ReceiveBufferSize: " + ReceiveBufferSize);
         logger.info("ReceiveAllocatorBufferSize: " + ReceiveAllocatorBufferSize);
-        logger.info("ReceiveAllocatorBufferSizeMax: " + ReceiveAllocatorBufferSizeMax);
 
         logger.info("A2SInfoChallenge: " + EnableA2SInfoChallenge);
         logger.info("A2SRule: " + EnableA2SRule);
