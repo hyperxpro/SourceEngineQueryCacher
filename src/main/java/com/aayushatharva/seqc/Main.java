@@ -60,7 +60,7 @@ public final class Main {
                     eventLoopGroup = new EpollEventLoopGroup(Config.Threads);
                 } else {
                     // Epoll is requested but Epoll is not available, we'll throw error and shut down.
-                    System.err.println("IO_URING and Epoll Transport, both are not available, Shutting down...");
+                    logger.fatal("IO_URING and Epoll Transport, both are not available, Shutting down...", Epoll.unavailabilityCause());
                     System.exit(1);
                 }
             }
