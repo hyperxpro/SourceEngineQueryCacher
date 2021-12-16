@@ -1,7 +1,7 @@
-package com.aayushatharva.sourcecenginequerycacher.gameserver.a2sinfo;
+package com.aayushatharva.seqc.gameserver.a2sinfo;
 
-import com.aayushatharva.sourcecenginequerycacher.utils.Cache;
-import com.aayushatharva.sourcecenginequerycacher.utils.Packets;
+import com.aayushatharva.seqc.utils.Cache;
+import com.aayushatharva.seqc.utils.Packets;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufUtil;
 import io.netty.channel.ChannelHandlerContext;

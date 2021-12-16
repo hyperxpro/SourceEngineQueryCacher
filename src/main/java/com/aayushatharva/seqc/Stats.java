@@ -1,6 +1,6 @@
-package com.aayushatharva.sourcecenginequerycacher;
+package com.aayushatharva.seqc;
 
-import com.aayushatharva.sourcecenginequerycacher.utils.Config;
+import com.aayushatharva.seqc.utils.Config;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -20,14 +20,14 @@ final class Stats extends Thread {
     @SuppressWarnings("BusyWait")
     @Override
     public void run() {
+        logger.info("Starting Stats, PPS Enabled: " + Config.Stats_PPS + ", bPS Enabled: " + Config.Stats_BPS);
 
-        logger.info("Starting Stats, PPS Enabled: " + Config.Stats_PPS + ", bPS Enabled: " + Config.Stats_bPS);
         String timestamp;
         while (keepRunning) {
 
              timestamp = getTimestamp();
 
-            if (Config.Stats_PPS && Config.Stats_bPS) {
+            if (Config.Stats_PPS && Config.Stats_BPS) {
                 System.out.print("[" + timestamp + "] [STATS] p/s: " + PPS.getAndSet(0L));
                 System.out.print(" | b/s: " + calculateBps());
                 System.out.print("\r");
@@ -37,7 +37,7 @@ final class Stats extends Thread {
                     System.out.print("\r");
                 }
 
-                if (Config.Stats_bPS) {
+                if (Config.Stats_BPS) {
                     System.out.print("[" + timestamp + "] [STATS] p/s: 0 | b/s: " + calculateBps());
                     System.out.print("\r");
                 }
@@ -50,7 +50,7 @@ final class Stats extends Thread {
                 break;
             }
 
-            // If false then we're requested to shutdown.
+            // If false then we're requested to shut down.
             if (!keepRunning) {
                 return;
             }
@@ -72,6 +72,5 @@ final class Stats extends Thread {
     public void shutdown() {
         this.keepRunning = false;
         this.interrupt();
-
     }
 }

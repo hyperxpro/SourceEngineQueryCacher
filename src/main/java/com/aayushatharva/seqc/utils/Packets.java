@@ -1,4 +1,4 @@
-package com.aayushatharva.sourcecenginequerycacher.utils;
+package com.aayushatharva.seqc.utils;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.PooledByteBufAllocator;

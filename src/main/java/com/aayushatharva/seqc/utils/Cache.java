@@ -1,4 +1,4 @@
-package com.aayushatharva.sourcecenginequerycacher.utils;
+package com.aayushatharva.seqc.utils;
 
 import com.shieldblaze.expressgateway.common.map.SelfExpiringMap;
 import io.netty.buffer.ByteBuf;
@@ -32,7 +32,7 @@ public final class Cache {
      * Value: Challenge code Byte array
      */
     public static final Map<ByteKey, byte[]> CHALLENGE_MAP = new SelfExpiringMap<>(
-            new ConcurrentHashMap<>(), Duration.ofMillis(Config.ChallengeCodeTTL), false
+            new ConcurrentHashMap<>(), Duration.ofMillis(Config.ChallengeTTL), false
     );
 
     public static final class ByteKey {

@@ -1,24 +1,23 @@
-package com.aayushatharva.sourcecenginequerycacher.gameserver.a2srules;
+package com.aayushatharva.seqc.gameserver.a2splayer;
 
-import com.aayushatharva.sourcecenginequerycacher.Main;
-import com.aayushatharva.sourcecenginequerycacher.utils.Config;
-import com.aayushatharva.sourcecenginequerycacher.utils.Packets;
+import com.aayushatharva.seqc.Main;
+import com.aayushatharva.seqc.utils.Config;
+import com.aayushatharva.seqc.utils.Packets;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.AdaptiveRecvByteBufAllocator;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.epoll.EpollDatagramChannel;
-import io.netty.channel.epoll.EpollChannelOption;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-public final class RulesClient extends Thread {
+public final class PlayerClient extends Thread {
 
-    private static final Logger logger = LogManager.getLogger(RulesClient.class);
+    private static final Logger logger = LogManager.getLogger(PlayerClient.class);
     private boolean keepRunning = true;
 
-    public RulesClient(String name) {
+    public PlayerClient(String name) {
         super(name);
     }
 
@@ -33,16 +32,16 @@ public final class RulesClient extends Thread {
                     .option(ChannelOption.SO_RCVBUF, Config.ReceiveBufferSize)
                     .option(ChannelOption.RCVBUF_ALLOCATOR, new AdaptiveRecvByteBufAllocator(Config.ReceiveAllocatorBufferSizeMin,
                             Config.ReceiveAllocatorBufferSize, Config.ReceiveAllocatorBufferSizeMax))
-                    .handler(new RulesHandler());
+                    .handler(new PlayerHandler());
 
-            Channel channel = bootstrap.connect(Config.GameServer).sync().channel();
+            Channel channel = bootstrap.connect(Config.GameAddress).sync().channel();
 
             while (keepRunning) {
-                channel.writeAndFlush(Packets.A2S_RULES_CHALLENGE_REQUEST_2).sync();
+                channel.writeAndFlush(Packets.A2S_PLAYER_CHALLENGE_REQUEST_2).sync();
                 try{
-                    sleep(Config.GameUpdateInterval);
+                    sleep(Config.UpdateRate);
                 } catch(InterruptedException e){
-                    logger.error("Error at RulesClient During Interval Sleep ", e);
+                    logger.error("Error at PlayerClient During Interval Sleep ", e);
                     break;
                 }
             }
