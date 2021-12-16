@@ -84,6 +84,7 @@ class HandlerTest {
 
     @Test
     @Order(3)
+    @Disabled
     void A2SPlayer() throws IOException {
         byte[] Response = joinArrays(ByteBufUtil.getBytes(Packets.A2S_PLAYER_REQUEST_HEADER), a2sChallenge);
         DatagramPacket queryPck = new DatagramPacket(Response, 0, Response.length,
@@ -104,6 +105,7 @@ class HandlerTest {
 
     @Test
     @Order(3)
+    @Disabled
     void A2SPlayerChallenge() throws IOException {
         DatagramPacket queryPck = new DatagramPacket(ByteBufUtil.getBytes(Packets.A2S_PLAYER_CHALLENGE_REQUEST_1), 0,
                 ByteBufUtil.getBytes(Packets.A2S_PLAYER_CHALLENGE_REQUEST_1).length, Config.ServerAddress.getAddress(), Config.ServerAddress.getPort());
@@ -126,6 +128,7 @@ class HandlerTest {
 
     @Test
     @Order(5)
+    @Disabled
     void A2SRules() throws IOException {
         byte[] Response = joinArrays(ByteBufUtil.getBytes(Packets.A2S_RULES_REQUEST_HEADER), a2sChallenge);
         DatagramPacket queryPck = new DatagramPacket(Response, 0, Response.length,
@@ -146,6 +149,7 @@ class HandlerTest {
 
     @Test
     @Order(6)
+    @Disabled
     void A2SRulesChallenge() throws IOException {
         DatagramPacket queryPck = new DatagramPacket(ByteBufUtil.getBytes(Packets.A2S_RULES_CHALLENGE_REQUEST_1), 0,
                 ByteBufUtil.getBytes(Packets.A2S_RULES_CHALLENGE_REQUEST_1).length, Config.ServerAddress.getAddress(), Config.ServerAddress.getPort());
