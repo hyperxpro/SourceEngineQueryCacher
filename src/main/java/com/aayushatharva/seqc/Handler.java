@@ -111,8 +111,9 @@ final class Handler extends SimpleChannelInboundHandler<DatagramPacket> {
         }
 
         if (logger.isDebugEnabled()) {
-            logger.debug("Dropping Packet of Length {} bytes from {}:{}", pckLength,
-                    packet.sender().getAddress().getHostAddress(), packet.sender().getPort());
+            logger.debug("Dropping Packet of Length {} bytes from {}:{} \n{}", pckLength,
+                    packet.sender().getAddress().getHostAddress(), packet.sender().getPort(),
+                    ByteBufUtil.prettyHexDump(packet.content()));
         }
     }
 
