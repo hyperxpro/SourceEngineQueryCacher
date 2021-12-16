@@ -44,7 +44,7 @@ class HandlerTest {
     @Test
     @Order(1)
     void A2SInfo() throws IOException {
-        byte[] Response = joinArrays(ByteBufUtil.getBytes(Packets.A2S_INFO_REQUEST), a2sChallenge);
+        byte[] Response = ByteBufUtil.getBytes(Packets.A2S_INFO_REQUEST);
         DatagramPacket queryPck = new DatagramPacket(Response, 0, Response.length,
                 Config.ServerAddress.getAddress(), Config.ServerAddress.getPort());
 
