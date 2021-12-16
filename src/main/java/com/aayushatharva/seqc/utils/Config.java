@@ -76,7 +76,7 @@ public final class Config {
         options = new Options()
                 /* General Configuration */
                 .addOption(HELP, false, "Display Usages")
-                .addOption("-c", CONFIG, true, "Configuration File Path")
+                .addOption("c", CONFIG, true, "Configuration File Path")
                 .addOption(THREADS, true, "Number of Threads")
                 .addOption(PPS, false, "Enable Packets per Second Stats")
                 .addOption(BPS, false, "Enable Bits per Second Stats")
