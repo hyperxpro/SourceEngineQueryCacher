@@ -132,7 +132,7 @@ public final class Main {
     /**
      * Shutdown everything
      */
-    public void shutdown() throws ExecutionException, InterruptedException {
+    public static void shutdown() throws ExecutionException, InterruptedException {
         Future<?> future = eventLoopGroup.shutdownGracefully();
         infoClient.shutdown();
         playerClient.shutdown();

@@ -21,19 +21,17 @@ import java.util.concurrent.ExecutionException;
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class HandlerTest {
 
-    static Main main;
     static byte[] a2sChallenge;
 
     @BeforeAll
     static void setup() throws InterruptedException {
-        main = new Main();
         Main.main(new String[]{"-c", "Cacher.conf"});
         Thread.sleep(2500);
     }
 
     @AfterAll
     static void shutdown() throws ExecutionException, InterruptedException {
-        main.shutdown();
+        Main.shutdown();
     }
 
     public static byte[] joinArrays(final byte[] array1, byte[] array2) {

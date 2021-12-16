@@ -36,6 +36,7 @@ public final class Config {
     public static Long ChallengeTTL = 2000L;
 
     // IP Addresses and Ports
+    // These fields will be initialized during configuration processing
     public static InetSocketAddress ServerAddress;
     public static InetSocketAddress GameAddress;
 
@@ -65,10 +66,10 @@ public final class Config {
     private static final String GAME_PORT = "GamePort";
     private static final String SERVER_IP = "ServerIP";
     private static final String SERVER_PORT = "ServerPort";
-    private static final String SEND_BUF = "SendBuf";
-    private static final String RECEIVE_BUF = "ReceiveBuf";
-    private static final String RECEIVE_ALLOC_BUF = "ReceiveAllocatorBuf";
-    private static final String RECEIVE_ALLOC_BUF_MAX = "ReceiveAllocatorBufMax";
+    private static final String SEND_BUF = "SendBufferSize";
+    private static final String RECEIVE_BUF = "ReceiveBufferSize";
+    private static final String RECEIVE_ALLOC_BUF = "ReceiveAllocatorBufferSize";
+    private static final String RECEIVE_ALLOC_BUF_MAX = "ReceiveAllocatorBufferSizeMax";
     private static final String A2S_INFO_CHALLENGE = "A2SInfoChallenge";
     private static final String A2S_RULE = "A2SRule";
 
@@ -136,20 +137,16 @@ public final class Config {
         UpdateRate = Long.parseLong(Data.getProperty(UPDATE_RATE, String.valueOf(UpdateRate)));
         ChallengeTTL = Long.parseLong(Data.getProperty(CHALLENGE_TTL, String.valueOf(ChallengeTTL)));
 
-        ServerAddress = new InetSocketAddress(InetAddress.getByName(Data.getProperty(SERVER_IP, "127.0.0.1")),
-                Integer.parseInt(Data.getProperty(SERVER_PORT, "9110")));
-        GameAddress = new InetSocketAddress(InetAddress.getByName(Data.getProperty(SERVER_IP, "127.0.0.1")),
-                Integer.parseInt(Data.getProperty(SERVER_PORT, "27015")));
+        ServerAddress = new InetSocketAddress(InetAddress.getByName(Data.getProperty(SERVER_IP, "127.0.0.1")), Integer.parseInt(Data.getProperty(SERVER_PORT, "9110")));
+        GameAddress = new InetSocketAddress(InetAddress.getByName(Data.getProperty(SERVER_IP, "127.0.0.1")), Integer.parseInt(Data.getProperty(SERVER_PORT, "27015")));
 
-        SendBufferSize = Integer.parseInt(Data.getProperty("SendBufferSize", String.valueOf(SendBufferSize)));
-        ReceiveBufferSize = Integer.parseInt(Data.getProperty("ReceiveBufferSize", String.valueOf(ReceiveBufferSize)));
-        ReceiveAllocatorBufferSize = Math.min(Integer.parseInt(Data.getProperty("ReceiveAllocatorBufferSize",
-                String.valueOf(ReceiveAllocatorBufferSize))), ReceiveAllocatorBufferSizeMax);
-        ReceiveAllocatorBufferSizeMax = Integer.parseInt(Data.getProperty("ReceiveAllocatorBufferSizeMax",
-                String.valueOf(ReceiveAllocatorBufferSizeMax)));
+        SendBufferSize = Integer.parseInt(Data.getProperty(SEND_BUF, String.valueOf(SendBufferSize)));
+        ReceiveBufferSize = Integer.parseInt(Data.getProperty(RECEIVE_BUF, String.valueOf(ReceiveBufferSize)));
+        ReceiveAllocatorBufferSize = Math.min(Integer.parseInt(Data.getProperty(RECEIVE_ALLOC_BUF, String.valueOf(ReceiveAllocatorBufferSize))), ReceiveAllocatorBufferSizeMax);
+        ReceiveAllocatorBufferSizeMax = Integer.parseInt(Data.getProperty(RECEIVE_ALLOC_BUF_MAX, String.valueOf(ReceiveAllocatorBufferSizeMax)));
 
-        EnableA2SInfoChallenge = Boolean.parseBoolean(Data.getProperty("A2SInfoChallenge", String.valueOf(EnableA2SInfoChallenge)));
-        EnableA2SRule = Boolean.parseBoolean(Data.getProperty("A2SRule", String.valueOf(EnableA2SRule)));
+        EnableA2SInfoChallenge = Boolean.parseBoolean(Data.getProperty(A2S_INFO_CHALLENGE, String.valueOf(EnableA2SInfoChallenge)));
+        EnableA2SRule = Boolean.parseBoolean(Data.getProperty(A2S_RULE, String.valueOf(EnableA2SRule)));
     }
 
     private static void displayConfig() {
