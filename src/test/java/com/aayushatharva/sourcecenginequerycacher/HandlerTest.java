@@ -7,6 +7,7 @@ import io.netty.buffer.ByteBufUtil;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
@@ -42,26 +43,6 @@ class HandlerTest {
 
     @Test
     @Order(1)
-    void A2SInfoChallenge() throws IOException {
-        DatagramPacket queryPck = new DatagramPacket(ByteBufUtil.getBytes(Packets.A2S_INFO_REQUEST), 0,
-                Packets.A2S_INFO_REQUEST.readableBytes(), Config.ServerAddress.getAddress(), Config.ServerAddress.getPort());
-        byte[] responseBytes = new byte[4096];
-        DatagramPacket responsePacket = new DatagramPacket(responseBytes, responseBytes.length);
-
-        DatagramSocket datagramSocket = new DatagramSocket();
-        datagramSocket.setSoTimeout(100);
-        datagramSocket.send(queryPck);
-        datagramSocket.receive(responsePacket);
-        datagramSocket.close();
-
-        Assertions.assertEquals("FFFFFFFF41",
-                toHexString(Arrays.copyOfRange(responsePacket.getData(), responsePacket.getOffset(), responsePacket.getLength())).substring(0, 10));
-        a2sChallenge = Arrays.copyOfRange(Arrays.copyOfRange(responsePacket.getData(), responsePacket.getOffset(), responsePacket.getLength()),
-                        5, 9);
-    }
-
-    @Test
-    @Order(2)
     void A2SInfo() throws IOException {
         byte[] Response = joinArrays(ByteBufUtil.getBytes(Packets.A2S_INFO_REQUEST), a2sChallenge);
         DatagramPacket queryPck = new DatagramPacket(Response, 0, Response.length,
@@ -77,6 +58,47 @@ class HandlerTest {
         datagramSocket.close();
 
         Assertions.assertEquals("FFFFFFFF49",
+                toHexString(Arrays.copyOfRange(responsePacket.getData(), responsePacket.getOffset(), responsePacket.getLength())).substring(0, 10));
+    }
+
+    @Test
+    @Order(2)
+    @Disabled
+    void A2SInfoChallenge() throws IOException {
+        DatagramPacket queryPck = new DatagramPacket(ByteBufUtil.getBytes(Packets.A2S_INFO_REQUEST), 0,
+                Packets.A2S_INFO_REQUEST.readableBytes(), Config.ServerAddress.getAddress(), Config.ServerAddress.getPort());
+        byte[] responseBytes = new byte[4096];
+        DatagramPacket responsePacket = new DatagramPacket(responseBytes, responseBytes.length);
+
+        DatagramSocket datagramSocket = new DatagramSocket();
+        datagramSocket.setSoTimeout(100);
+        datagramSocket.send(queryPck);
+        datagramSocket.receive(responsePacket);
+        datagramSocket.close();
+
+        Assertions.assertEquals("FFFFFFFF41",
+                toHexString(Arrays.copyOfRange(responsePacket.getData(), responsePacket.getOffset(), responsePacket.getLength())).substring(0, 10));
+        a2sChallenge = Arrays.copyOfRange(Arrays.copyOfRange(responsePacket.getData(), responsePacket.getOffset(), responsePacket.getLength()),
+                5, 9);
+    }
+
+    @Test
+    @Order(3)
+    void A2SPlayer() throws IOException {
+        byte[] Response = joinArrays(ByteBufUtil.getBytes(Packets.A2S_PLAYER_REQUEST_HEADER), a2sChallenge);
+        DatagramPacket queryPck = new DatagramPacket(Response, 0, Response.length,
+                Config.ServerAddress.getAddress(), Config.ServerAddress.getPort());
+
+        byte[] responseBytes = new byte[4096];
+        DatagramPacket responsePacket = new DatagramPacket(responseBytes, responseBytes.length);
+
+        DatagramSocket datagramSocket = new DatagramSocket();
+        datagramSocket.setSoTimeout(100);
+        datagramSocket.send(queryPck);
+        datagramSocket.receive(responsePacket);
+        datagramSocket.close();
+
+        Assertions.assertEquals("FFFFFFFF44",
                 toHexString(Arrays.copyOfRange(responsePacket.getData(), responsePacket.getOffset(), responsePacket.getLength())).substring(0, 10));
     }
 
@@ -103,9 +125,9 @@ class HandlerTest {
     }
 
     @Test
-    @Order(4)
-    void A2SPlayer() throws IOException {
-        byte[] Response = joinArrays(ByteBufUtil.getBytes(Packets.A2S_PLAYER_REQUEST_HEADER), a2sChallenge);
+    @Order(5)
+    void A2SRules() throws IOException {
+        byte[] Response = joinArrays(ByteBufUtil.getBytes(Packets.A2S_RULES_REQUEST_HEADER), a2sChallenge);
         DatagramPacket queryPck = new DatagramPacket(Response, 0, Response.length,
                 Config.ServerAddress.getAddress(), Config.ServerAddress.getPort());
 
@@ -118,12 +140,12 @@ class HandlerTest {
         datagramSocket.receive(responsePacket);
         datagramSocket.close();
 
-        Assertions.assertEquals("FFFFFFFF44",
+        Assertions.assertEquals("FFFFFFFF45",
                 toHexString(Arrays.copyOfRange(responsePacket.getData(), responsePacket.getOffset(), responsePacket.getLength())).substring(0, 10));
     }
 
     @Test
-    @Order(5)
+    @Order(6)
     void A2SRulesChallenge() throws IOException {
         DatagramPacket queryPck = new DatagramPacket(ByteBufUtil.getBytes(Packets.A2S_RULES_CHALLENGE_REQUEST_1), 0,
                 ByteBufUtil.getBytes(Packets.A2S_RULES_CHALLENGE_REQUEST_1).length, Config.ServerAddress.getAddress(), Config.ServerAddress.getPort());
@@ -142,26 +164,6 @@ class HandlerTest {
 
         a2sChallenge = Arrays.copyOfRange(Arrays.copyOfRange(responsePacket.getData(), responsePacket.getOffset(), responsePacket.getLength()),
                 5, 9);
-    }
-
-    @Test
-    @Order(6)
-    void A2SRules() throws IOException {
-        byte[] Response = joinArrays(ByteBufUtil.getBytes(Packets.A2S_RULES_REQUEST_HEADER), a2sChallenge);
-        DatagramPacket queryPck = new DatagramPacket(Response, 0, Response.length,
-                Config.ServerAddress.getAddress(), Config.ServerAddress.getPort());
-
-        byte[] responseBytes = new byte[4096];
-        DatagramPacket responsePacket = new DatagramPacket(responseBytes, responseBytes.length);
-
-        DatagramSocket datagramSocket = new DatagramSocket();
-        datagramSocket.setSoTimeout(100);
-        datagramSocket.send(queryPck);
-        datagramSocket.receive(responsePacket);
-        datagramSocket.close();
-
-        Assertions.assertEquals("FFFFFFFF45",
-                toHexString(Arrays.copyOfRange(responsePacket.getData(), responsePacket.getOffset(), responsePacket.getLength())).substring(0, 10));
     }
 
     /**
