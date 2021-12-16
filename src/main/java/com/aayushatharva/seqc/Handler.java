@@ -44,7 +44,7 @@ final class Handler extends SimpleChannelInboundHandler<DatagramPacket> {
 
         if (Config.Stats_BPS)
             Stats.BPS.addAndGet(pckLength);
-
+        System.out.println(packet);
         /*
          * If A2S_INFO or A2S_PLAYER is not readable or If A2S_RULE is enabled but not readable,
          * drop request because we've nothing to reply.
