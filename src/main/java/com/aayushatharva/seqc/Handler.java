@@ -49,7 +49,7 @@ final class Handler extends SimpleChannelInboundHandler<DatagramPacket> {
          * If A2S_INFO or A2S_PLAYER is not readable or If A2S_RULE is enabled but not readable,
          * drop request because we've nothing to reply.
          */
-        if (!Cache.A2S_INFO.isReadable() || !Cache.A2S_PLAYER.isReadable() || !(Config.EnableA2SRule && !Cache.A2S_RULES.isReadable())) {
+        if (!Cache.A2S_INFO.isReadable() || !Cache.A2S_PLAYER.isReadable() || (Config.EnableA2SRule && !Cache.A2S_RULES.isReadable())) {
             logger.error("Dropping query request because Cache is not ready. A2S_INFO: {}, A2S_PLAYER: {}, A2S_RULES: {}",
                     Cache.A2S_INFO, Cache.A2S_PLAYER, Cache.A2S_RULES);
             return;
