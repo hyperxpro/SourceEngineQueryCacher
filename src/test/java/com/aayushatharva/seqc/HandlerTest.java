@@ -1,6 +1,5 @@
-package com.aayushatharva.sourcecenginequerycacher;
+package com.aayushatharva.seqc;
 
-import com.aayushatharva.seqc.Main;
 import com.aayushatharva.seqc.utils.Config;
 import com.aayushatharva.seqc.utils.Packets;
 import io.netty.buffer.ByteBufUtil;
@@ -44,15 +43,14 @@ class HandlerTest {
     @Test
     @Order(1)
     void A2SInfo() throws IOException {
-        byte[] Response = ByteBufUtil.getBytes(Packets.A2S_INFO_REQUEST);
-        DatagramPacket queryPck = new DatagramPacket(Response, 0, Response.length,
+        byte[] request = ByteBufUtil.getBytes(Packets.A2S_INFO_REQUEST);
+        DatagramPacket queryPck = new DatagramPacket(request, 0, request.length,
                 Config.ServerAddress.getAddress(), Config.ServerAddress.getPort());
 
         byte[] responseBytes = new byte[4096];
         DatagramPacket responsePacket = new DatagramPacket(responseBytes, responseBytes.length);
 
         DatagramSocket datagramSocket = new DatagramSocket();
-        datagramSocket.setSoTimeout(100);
         datagramSocket.send(queryPck);
         datagramSocket.receive(responsePacket);
         datagramSocket.close();
