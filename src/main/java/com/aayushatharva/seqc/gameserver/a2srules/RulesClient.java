@@ -5,10 +5,8 @@ import com.aayushatharva.seqc.utils.Config;
 import com.aayushatharva.seqc.utils.Packets;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.PooledByteBufAllocator;
-import io.netty.channel.AdaptiveRecvByteBufAllocator;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelOption;
-import io.netty.channel.FixedRecvByteBufAllocator;
 import io.netty.channel.epoll.EpollDatagramChannel;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -29,19 +27,16 @@ public final class RulesClient extends Thread {
                     .group(Main.eventLoopGroup)
                     .channelFactory(EpollDatagramChannel::new)
                     .option(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)
-                    .option(ChannelOption.SO_SNDBUF, Config.SendBufferSize)
-                    .option(ChannelOption.SO_RCVBUF, Config.ReceiveBufferSize)
-                    .option(ChannelOption.RCVBUF_ALLOCATOR, new FixedRecvByteBufAllocator(65_535))
                     .handler(new RulesHandler());
 
             Channel channel = bootstrap.connect(Config.GameAddress).sync().channel();
 
             while (keepRunning) {
                 channel.writeAndFlush(Packets.A2S_RULES_CHALLENGE_REQUEST_2).sync();
-                try{
+                try {
                     sleep(Config.UpdateRate);
-                } catch(InterruptedException e){
-                    logger.error("Error at RulesClient During Interval Sleep", e);
+                } catch (InterruptedException e) {
+                    logger.error("Sleep Interrupted");
                     break;
                 }
             }
