@@ -81,8 +81,8 @@ public final class Main {
                     .option(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)
                     .option(ChannelOption.SO_SNDBUF, Config.SendBufferSize)
                     .option(ChannelOption.SO_RCVBUF, Config.ReceiveBufferSize)
-                    .option(EpollChannelOption.MAX_DATAGRAM_PAYLOAD_SIZE, Config.ReceiveAllocatorBufferSize)
-                    .option(ChannelOption.RCVBUF_ALLOCATOR, new FixedRecvByteBufAllocator(Config.ReceiveAllocatorBufferSize))
+//                    .option(EpollChannelOption.MAX_DATAGRAM_PAYLOAD_SIZE, Config.ReceiveAllocatorBufferSize)
+//                    .option(ChannelOption.RCVBUF_ALLOCATOR, new FixedRecvByteBufAllocator(Config.ReceiveAllocatorBufferSize))
                     .option(UnixChannelOption.SO_REUSEPORT, true)
                     .option(EpollChannelOption.UDP_GRO, true) // Enable UDP GRO
                     .handler(handler);
