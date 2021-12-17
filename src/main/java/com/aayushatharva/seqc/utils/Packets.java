@@ -130,4 +130,8 @@ public final class Packets {
             .writeBytes(new byte[]{-1, -1, -1, -2, 68}));
 
     public static final int A2S_PLAYER_RESPONSE_HEADER_SPLIT_LEN = 5;
+
+    private Packets() {
+        // Prevent outside initialization
+    }
 }

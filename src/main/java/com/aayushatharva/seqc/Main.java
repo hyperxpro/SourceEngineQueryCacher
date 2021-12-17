@@ -61,7 +61,7 @@ public final class Main {
                     eventLoopGroup = new EpollEventLoopGroup(Config.Threads);
                 } else {
                     // Epoll is requested but Epoll is not available, we'll throw error and shut down.
-                    logger.fatal("IO_URING and Epoll Transport, both are not available, Shutting down...", Epoll.unavailabilityCause());
+                    logger.fatal("IO_URING and Epoll Transport, both are not available. Shutting down...", Epoll.unavailabilityCause());
                     System.exit(1);
                 }
             }
@@ -81,7 +81,7 @@ public final class Main {
                     .option(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)
                     .option(ChannelOption.SO_SNDBUF, Config.SendBufferSize)
                     .option(ChannelOption.SO_RCVBUF, Config.ReceiveBufferSize)
-                    .option(EpollChannelOption.MAX_DATAGRAM_PAYLOAD_SIZE, 256)
+                    .option(EpollChannelOption.MAX_DATAGRAM_PAYLOAD_SIZE, Config.ReceiveAllocatorBufferSize)
                     .option(ChannelOption.RCVBUF_ALLOCATOR, new FixedRecvByteBufAllocator(Config.ReceiveAllocatorBufferSize))
                     .option(UnixChannelOption.SO_REUSEPORT, true)
                     .option(EpollChannelOption.UDP_GRO, true) // Enable UDP GRO

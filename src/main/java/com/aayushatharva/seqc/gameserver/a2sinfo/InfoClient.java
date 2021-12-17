@@ -31,7 +31,7 @@ public final class InfoClient extends Thread {
                     .option(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)
                     .option(ChannelOption.SO_SNDBUF, Config.SendBufferSize)
                     .option(ChannelOption.SO_RCVBUF, Config.ReceiveBufferSize)
-                    .option(ChannelOption.RCVBUF_ALLOCATOR, new FixedRecvByteBufAllocator(1536))
+                    .option(ChannelOption.RCVBUF_ALLOCATOR, new FixedRecvByteBufAllocator(65_535))
                     .handler(new InfoHandler());
 
             Channel channel = bootstrap.connect(Config.GameAddress).sync().channel();
@@ -41,12 +41,12 @@ public final class InfoClient extends Thread {
                 try{
                     sleep(Config.UpdateRate);
                 } catch(InterruptedException e){
-                    logger.error("Error at InfoClient During Interval Sleep ", e);
+                    logger.error("Error at InfoClient During Interval Sleep", e);
                     break;
                 }
             }
 
-            channel.closeFuture().sync();
+            channel.close().sync();
         } catch (Exception ex) {
             logger.atError().withThrowable(ex).log("Error occurred");
         }
