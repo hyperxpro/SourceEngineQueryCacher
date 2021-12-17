@@ -96,12 +96,17 @@ final class Handler extends SimpleChannelInboundHandler<DatagramPacket> {
 
                 /*
                  * 1. Packet equals to `A2S_INFO_REQUEST` with length==25 (A2S_INFO without challenge code)
-                 * then we'll send response of A2S_Challenge Packet.
+                 * then we'll check if A2SInfoChallenge is enabled or not. If it's enabled then
+                 *  we'll send response of A2S_Challenge Packet, otherwise we'll send A2S_INFO Packet.
                  *
                  * 2. Validate A2S_INFO Challenge Response (length==29) and send A2S_INFO Packet.
                  */
                 if (pckLength == A2S_INFO_REQUEST_LEN) {
-                    sendA2SChallenge(ctx, packet);
+                    if (Config.EnableA2SInfoChallenge) {
+                        sendA2SChallenge(ctx, packet);
+                    } else {
+                        sendA2SInfoResponse(ctx, packet);
+                    }
                     return;
                 } else if (pckLength == A2S_INFO_REQUEST_LEN + LEN_CODE) { // 4 Byte padded challenge Code
                     sendA2SInfoResponse(ctx, packet);
@@ -111,7 +116,7 @@ final class Handler extends SimpleChannelInboundHandler<DatagramPacket> {
         }
 
         if (logger.isDebugEnabled()) {
-            logger.debug("Dropping Packet of Length {} bytes from {}:{} \n{}", pckLength,
+            logger.debug("Dropping Packet of Length {} bytes from {}:{} ----- {}", pckLength,
                     packet.sender().getAddress().getHostAddress(), packet.sender().getPort(),
                     ByteBufUtil.prettyHexDump(packet.content()));
         }
