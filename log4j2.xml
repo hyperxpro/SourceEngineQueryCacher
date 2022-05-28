@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="WARN">
+
+    <Appenders>
+        <Console name="ConsoleAppender" target="SYSTEM_OUT">
+            <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss.SSS} [%t] %-5level %c{1.} - %msg%n"/>
+        </Console>
+    </Appenders>
+
+    <Loggers>
+
+        <Logger name="com.aayushatharva.seqc" level="debug">
+            <AppenderRef ref="ConsoleAppender"/>
+        </Logger>
+    </Loggers>
+
+</Configuration>

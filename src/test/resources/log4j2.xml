@@ -8,13 +8,8 @@
     </Appenders>
 
     <Loggers>
-
-        <Logger name="com.aayushatharva.sourcecenginequerycacher" level="info">
-            <AppenderRef ref="ConsoleAppender"/>
-        </Logger>
-
-        <Root level="off">
-            <!--            <AppenderRef ref="ConsoleAppender"/>-->
+        <Root level="debug">
+              <AppenderRef ref="ConsoleAppender"/>
         </Root>
     </Loggers>
 

@@ -18,7 +18,7 @@ final class DefaultCleaner<K, V> extends Cleaner<K, V> {
 
     DefaultCleaner(SelfExpiringMap<K, V> selfExpiringMap) {
         super(selfExpiringMap);
-        scheduledFuture = executorService.scheduleWithFixedDelay(this, 1, 1, TimeUnit.SECONDS);
+        scheduledFuture = executorService.scheduleWithFixedDelay(this, 10, 10, TimeUnit.MILLISECONDS);
     }
 
     @Override
