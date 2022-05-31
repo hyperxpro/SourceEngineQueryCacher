@@ -4,24 +4,24 @@ import com.aayushatharva.seqc.gameserver.a2sinfo.InfoClient;
 import com.aayushatharva.seqc.gameserver.a2splayer.PlayerClient;
 import com.aayushatharva.seqc.gameserver.a2srules.RulesClient;
 import com.aayushatharva.seqc.utils.Cache;
-import com.aayushatharva.seqc.utils.Config;
-import io.netty.bootstrap.Bootstrap;
+import com.aayushatharva.seqc.utils.Configuration;
 import io.netty.buffer.PooledByteBufAllocator;
-import io.netty.channel.AdaptiveRecvByteBufAllocator;
-import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelFutureListener;
-import io.netty.channel.ChannelOption;
-import io.netty.channel.EventLoopGroup;
-import io.netty.channel.FixedRecvByteBufAllocator;
-import io.netty.channel.epoll.Epoll;
-import io.netty.channel.epoll.EpollChannelOption;
-import io.netty.channel.epoll.EpollDatagramChannel;
-import io.netty.channel.epoll.EpollEventLoopGroup;
-import io.netty.channel.socket.InternetProtocolFamily;
-import io.netty.channel.unix.UnixChannelOption;
-import io.netty.incubator.channel.uring.IOUring;
-import io.netty.incubator.channel.uring.IOUringDatagramChannel;
-import io.netty.incubator.channel.uring.IOUringEventLoopGroup;
+import io.netty5.bootstrap.Bootstrap;
+import io.netty5.buffer.api.BufferAllocator;
+import io.netty5.channel.Channel;
+import io.netty5.channel.ChannelOption;
+import io.netty5.channel.EventLoopGroup;
+import io.netty5.channel.FixedRecvBufferAllocator;
+import io.netty5.channel.IoHandlerFactory;
+import io.netty5.channel.MultithreadEventLoopGroup;
+import io.netty5.channel.epoll.Epoll;
+import io.netty5.channel.epoll.EpollDatagramChannel;
+import io.netty5.channel.epoll.EpollHandler;
+import io.netty5.channel.nio.NioHandler;
+import io.netty5.channel.socket.InternetProtocolFamily;
+import io.netty5.channel.socket.nio.NioDatagramChannel;
+import io.netty5.channel.unix.UnixChannelOption;
+import io.netty5.util.concurrent.Future;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -29,12 +29,12 @@ import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
 
 public final class Main {
     private static final Logger logger = LogManager.getLogger(Main.class);
 
     static {
+        System.setProperty("java.net.preferIPv4Stack", "true");
         System.setProperty("log4j.configurationFile", "log4j2.xml");
     }
 
@@ -45,56 +45,49 @@ public final class Main {
     private static RulesClient rulesClient;
 
     public static void main(String[] args) {
-
         try {
-
             // Setup configurations
-            Config.setup(args);
+            Configuration.setup(args[0]);
 
-            if (IOUring.isAvailable()) {
-                eventLoopGroup = new IOUringEventLoopGroup(Config.Threads);
-                logger.info("Using High Performance IO_URING Transport");
+            IoHandlerFactory ioHandlerFactory;
+            if (Epoll.isAvailable()) {
+                logger.info("Using Epoll Transport");
+                ioHandlerFactory = EpollHandler.newFactory();
             } else {
-                logger.info("High Performance IO_URING Transport is not available");
-
-                if (Epoll.isAvailable()) {
-                    eventLoopGroup = new EpollEventLoopGroup(Config.Threads);
-                } else {
-                    // Epoll is requested but Epoll is not available, we'll throw error and shut down.
-                    logger.fatal("IO_URING and Epoll Transport, both are not available. Shutting down...", Epoll.unavailabilityCause());
-                    System.exit(1);
-                }
+                logger.info("Using Nio Transport");
+                ioHandlerFactory = NioHandler.newFactory();
             }
 
-            List<ChannelFuture> channelFutureList = new ArrayList<>();
-            Handler handler = new Handler();
+            eventLoopGroup = new MultithreadEventLoopGroup(Configuration.THREADS, ioHandlerFactory);
+
+            List<Future<Channel>> channelFutures = new ArrayList<>();
 
             Bootstrap bootstrap = new Bootstrap()
                     .group(eventLoopGroup)
-                    .channelFactory(() -> {
-                        if (IOUring.isAvailable()) {
-                            return new IOUringDatagramChannel(InternetProtocolFamily.IPv4);
+                    .channelFactory(eventLoop -> {
+                        if (Epoll.isAvailable()) {
+                            EpollDatagramChannel epollDatagramChannel = new EpollDatagramChannel(eventLoop, InternetProtocolFamily.IPv4);
+                            epollDatagramChannel.config().setUdpGro(true);
+                            epollDatagramChannel.config().setReusePort(true);
+                            return epollDatagramChannel;
                         } else {
-                            return new EpollDatagramChannel(InternetProtocolFamily.IPv4);
+                            return new NioDatagramChannel(eventLoop, InternetProtocolFamily.IPv4);
                         }
                     })
-                    .option(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)
-                    .option(ChannelOption.SO_SNDBUF, Config.SendBufferSize)
-                    .option(ChannelOption.SO_RCVBUF, Config.ReceiveBufferSize)
-                    .option(EpollChannelOption.MAX_DATAGRAM_PAYLOAD_SIZE, Config.ReceiveAllocatorBufferSize)
-                    .option(ChannelOption.RCVBUF_ALLOCATOR, new FixedRecvByteBufAllocator(Config.ReceiveAllocatorBufferSize))
-                    .option(UnixChannelOption.SO_REUSEPORT, true)
-                    .option(EpollChannelOption.UDP_GRO, true)
-                    .handler(handler);
+                    .option(ChannelOption.SO_SNDBUF, Configuration.SEND_BUFFER_SIZE)
+                    .option(ChannelOption.SO_RCVBUF, Configuration.RECEIVE_BUFFER_SIZE)
+                    .option(ChannelOption.BUFFER_ALLOCATOR, BufferAllocator.offHeapPooled())
+                    .option(ChannelOption.RCVBUF_ALLOCATOR, new FixedRecvBufferAllocator(Configuration.RECEIVE_ALLOCATOR_SIZE).respectMaybeMoreData(false))
+                    .handler(Handler.INSTANCE);
 
-            for (int i = 0; i < Config.Threads; i++) {
+            for (int i = 0; i < Configuration.THREADS; i++) {
                 // Bind and Start Server
-                ChannelFuture channelFuture = bootstrap.bind(Config.ServerAddress.getAddress(), Config.ServerAddress.getPort())
-                        .addListener((ChannelFutureListener) future -> {
+                Future<Channel> channelFuture = bootstrap.bind(Configuration.SERVER_ADDRESS.getAddress(), Configuration.SERVER_ADDRESS.getPort())
+                        .addListener(future -> {
                             if (future.isSuccess()) {
                                 logger.info("Server Started on Address: {}:{}",
-                                        ((InetSocketAddress) future.channel().localAddress()).getAddress().getHostAddress(),
-                                        ((InetSocketAddress) future.channel().localAddress()).getPort());
+                                        ((InetSocketAddress) future.get().localAddress()).getAddress().getHostAddress(),
+                                        ((InetSocketAddress) future.get().localAddress()).getPort());
                             } else {
                                 logger.error("Caught Error While Starting Server", future.cause());
                                 System.err.println("Shutting down...");
@@ -102,15 +95,15 @@ public final class Main {
                             }
                         });
 
-                channelFutureList.add(channelFuture);
+                channelFutures.add(channelFuture);
             }
 
             // Wait for all bind sockets to start
-            for (ChannelFuture channelFuture : channelFutureList) {
+            for (Future<Channel> channelFuture : channelFutures) {
                 channelFuture.sync();
             }
 
-            if (Config.Stats_BPS || Config.Stats_PPS) {
+            if (Configuration.STATS_BPS || Configuration.STATS_PPS) {
                 stats = new Stats();
                 stats.start();
             }
@@ -122,7 +115,7 @@ public final class Main {
             infoClient.start();
             playerClient.start();
 
-            if (Config.EnableA2SRule)
+            if (Configuration.ENABLE_A2S_RULE)
                 rulesClient.start();
         } catch (Exception ex) {
             logger.atError().withThrowable(ex).log("Error while Initializing");
@@ -139,8 +132,9 @@ public final class Main {
         rulesClient.shutdown();
         Cache.CHALLENGE_MAP.clear();
 
-        if (Config.Stats_BPS || Config.Stats_PPS)
+        if (Configuration.STATS_BPS || Configuration.STATS_PPS) {
             stats.shutdown();
+        }
 
         future.get();
     }

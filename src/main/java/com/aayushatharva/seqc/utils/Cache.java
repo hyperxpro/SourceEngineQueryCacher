@@ -1,29 +1,12 @@
 package com.aayushatharva.seqc.utils;
 
 import com.shieldblaze.expressgateway.common.map.SelfExpiringMap;
-import io.netty.buffer.ByteBuf;
-import io.netty.buffer.PooledByteBufAllocator;
+import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 
 import java.time.Duration;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 public final class Cache {
-
-    /**
-     * <p> ByteBuf for `A2S_INFO` Packet. </p>
-     */
-    public static final ByteBuf A2S_INFO = PooledByteBufAllocator.DEFAULT.buffer();
-
-    /**
-     * <p> ByteBuf for `A2S_PLAYER` Packet. </p>
-     */
-    public static final ByteBuf A2S_PLAYER = PooledByteBufAllocator.DEFAULT.buffer();
-
-    /**
-     * <p> ByteBuf for `A2S_RULES` Packet. </p>
-     */
-    public static final ByteBuf A2S_RULES = PooledByteBufAllocator.DEFAULT.buffer();
 
     /**
      * Challenge Code Map
@@ -31,8 +14,8 @@ public final class Cache {
      * Key: IPv4 Byte array
      * Value: Challenge code Byte array
      */
-    public static final Map<ByteKey, byte[]> CHALLENGE_MAP = new SelfExpiringMap<>(
-            new ConcurrentHashMap<>(), Duration.ofMillis(Config.ChallengeTTL), false
+    public static final Map<ByteKey, Integer> CHALLENGE_MAP = new SelfExpiringMap<>(
+            new Object2IntOpenHashMap<>(), Duration.ofMillis(Configuration.CHALLENGE_TTL), false
     );
 
     public static final class ByteKey {
@@ -55,7 +38,7 @@ public final class Cache {
         public ByteKey(byte[] array) {
             int i = array.length - 1;
             //Only use the rightmost 2 Bytes for storing. If array.length < 2 then we die.
-            this.value = (array[i-1] & 0xFF) << 8 | (array[i] & 0xFF);
+            this.value = (array[i - 1] & 0xFF) << 8 | (array[i] & 0xFF);
         }
 
         @Override

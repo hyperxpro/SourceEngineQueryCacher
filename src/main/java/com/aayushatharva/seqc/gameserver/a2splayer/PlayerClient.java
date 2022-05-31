@@ -1,7 +1,7 @@
 package com.aayushatharva.seqc.gameserver.a2splayer;
 
 import com.aayushatharva.seqc.Main;
-import com.aayushatharva.seqc.utils.Config;
+import com.aayushatharva.seqc.utils.Configuration;
 import com.aayushatharva.seqc.utils.Packets;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.PooledByteBufAllocator;
@@ -29,12 +29,12 @@ public final class PlayerClient extends Thread {
                     .option(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)
                     .handler(new PlayerHandler());
 
-            Channel channel = bootstrap.connect(Config.GameAddress).sync().channel();
+            Channel channel = bootstrap.connect(Configuration.GAME_ADDRESS).sync().channel();
 
             while (keepRunning) {
                 channel.writeAndFlush(Packets.A2S_PLAYER_CHALLENGE_REQUEST_2).sync();
                 try {
-                    sleep(Config.UpdateRate);
+                    sleep(Configuration.UPDATE_RATE);
                 } catch (InterruptedException e) {
                     logger.error("Sleep Interrupted");
                     break;

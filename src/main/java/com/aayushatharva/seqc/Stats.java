@@ -1,6 +1,6 @@
 package com.aayushatharva.seqc;
 
-import com.aayushatharva.seqc.utils.Config;
+import com.aayushatharva.seqc.utils.Configuration;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -20,24 +20,24 @@ final class Stats extends Thread {
     @SuppressWarnings("BusyWait")
     @Override
     public void run() {
-        logger.info("Starting Stats, PPS Enabled: " + Config.Stats_PPS + ", bPS Enabled: " + Config.Stats_BPS);
+        logger.info("Starting Stats, PPS Enabled: " + Configuration.STATS_PPS + ", bPS Enabled: " + Configuration.STATS_BPS);
 
         String timestamp;
         while (keepRunning) {
 
              timestamp = getTimestamp();
 
-            if (Config.Stats_PPS && Config.Stats_BPS) {
+            if (Configuration.STATS_PPS && Configuration.STATS_BPS) {
                 System.out.print("[" + timestamp + "] [STATS] p/s: " + PPS.getAndSet(0L));
                 System.out.print(" | b/s: " + calculateBps());
                 System.out.print("\r");
             } else {
-                if (Config.Stats_PPS) {
+                if (Configuration.STATS_PPS) {
                     System.out.print("[" + timestamp + "] [STATS] p/s: " + PPS.getAndSet(0L) + " | b/s: 0");
                     System.out.print("\r");
                 }
 
-                if (Config.Stats_BPS) {
+                if (Configuration.STATS_BPS) {
                     System.out.print("[" + timestamp + "] [STATS] p/s: 0 | b/s: " + calculateBps());
                     System.out.print("\r");
                 }
