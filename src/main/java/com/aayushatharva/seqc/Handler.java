@@ -59,13 +59,13 @@ public final class Handler extends SimpleChannelInboundHandler<DatagramPacket> {
     private static final boolean IS_LOGGER_DEBUG_ENABLED = logger.isDebugEnabled();
 
     // Buffer for `A2S_INFO` Packet
-    public List<Buffer> A2S_INFO = new CopyOnWriteArrayList<>();
+    public final List<Buffer> A2S_INFO = new CopyOnWriteArrayList<>();
 
     // Buffer for `A2S_PLAYER` Packet
-    public List<Buffer> A2S_PLAYER = new CopyOnWriteArrayList<>();
+    public final List<Buffer> A2S_PLAYER = new CopyOnWriteArrayList<>();
 
     // Buffer for `A2S_RULES` Packet
-    public List<Buffer> A2S_RULES = new CopyOnWriteArrayList<>();
+    public final List<Buffer> A2S_RULES = new CopyOnWriteArrayList<>();
 
     protected void messageReceived(ChannelHandlerContext ctx, DatagramPacket packet) {
         try (Buffer buffer = packet.content().copy().makeReadOnly()) {
