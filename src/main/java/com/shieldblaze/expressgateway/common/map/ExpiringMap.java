@@ -17,20 +17,19 @@
  */
 package com.shieldblaze.expressgateway.common.map;
 
+import it.unimi.dsi.fastutil.objects.Object2IntFunction;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
+import it.unimi.dsi.fastutil.objects.Object2LongOpenHashMap;
 
 import java.time.Duration;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * Base Expiring Map Implementation.
  */
 public abstract class ExpiringMap<ByteKey> extends Object2IntOpenHashMap<ByteKey> {
 
-    private final Map<Object, Long> timestampsMap = new HashMap<>();
+    private final Object2LongOpenHashMap<ByteKey> timestampsMap = new Object2LongOpenHashMap<>();
     private final long ttlMillis;
-    private final EntryRemovedListener<ByteKey> entryRemovedListener;
 
     /**
      * Create a new {@link ExpiringMap} Instance.
@@ -39,44 +38,17 @@ public abstract class ExpiringMap<ByteKey> extends Object2IntOpenHashMap<ByteKey
      */
     public ExpiringMap(Duration ttlDuration) {
         ttlMillis = ttlDuration.toMillis();
-        this.entryRemovedListener = new IgnoreEntryRemovedListener<>();
     }
 
     @Override
-    public int size() {
-        return super.size();
-    }
-
-    @Override
-    public boolean isEmpty() {
-        return super.isEmpty();
-    }
-
-    @Override
-    public boolean containsKey(Object key) {
-        return super.containsKey(key);
-    }
-
-    @Override
-    public boolean containsValue(Object value) {
-        return super.containsKey(value);
-    }
-
-    @Override
-    public Integer get(Object key) {
-        return super.get(key);
-    }
-
-    @Override
-    public Integer put(ByteKey key, Integer value) {
+    public int computeIfAbsent(ByteKey key, Object2IntFunction<? super ByteKey> mappingFunction) {
+        final int pos = find(key);
+        if (pos >= 0) return value[pos];
+        if (!mappingFunction.containsKey(key)) return defRetValue;
+        final int newValue = mappingFunction.getInt(key);
+        insert(-pos - 1, key, newValue);
         timestampsMap.put(key, System.currentTimeMillis());
-        return super.put(key, value);
-    }
-
-    @Override
-    public Integer remove(Object key) {
-        timestampsMap.remove(key);
-        return super.remove(key);
+        return newValue;
     }
 
     @Override
@@ -85,11 +57,7 @@ public abstract class ExpiringMap<ByteKey> extends Object2IntOpenHashMap<ByteKey
         super.clear();
     }
 
-    protected EntryRemovedListener<ByteKey> entryRemovedListener() {
-        return entryRemovedListener;
-    }
-
     protected boolean isExpired(Object key) {
-        return System.currentTimeMillis() - timestampsMap.get(key) > ttlMillis;
+        return System.currentTimeMillis() - timestampsMap.getLong(key) > ttlMillis;
     }
 }

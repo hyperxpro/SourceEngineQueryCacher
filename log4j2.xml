@@ -9,12 +9,12 @@
 
     <Loggers>
 
-        <Logger name="com.aayushatharva.seqc" level="off">
+        <Logger name="com.aayushatharva.seqc" level="debug">
             <AppenderRef ref="ConsoleAppender"/>
         </Logger>
 
         <Root level="debug">
-                        <AppenderRef ref="ConsoleAppender"/>
+            <AppenderRef ref="ConsoleAppender"/>
         </Root>
     </Loggers>
 

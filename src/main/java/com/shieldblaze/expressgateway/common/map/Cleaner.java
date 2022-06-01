@@ -38,7 +38,7 @@ public abstract class Cleaner implements Runnable, Closeable {
     public void run() {
         for (Object2IntMap.Entry<Cache.ByteKey> entry : selfExpiringMap.object2IntEntrySet()) {
             if (selfExpiringMap.isExpired(entry.getKey())) {
-                selfExpiringMap.remove(entry.getKey());
+                selfExpiringMap.removeInt(entry.getKey());
             }
         }
     }

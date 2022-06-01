@@ -1,3 +1,20 @@
+/*
+ * This file is part of SourceEngineQueryCacher. [https://github.com/hyperxpro/SourceEngineQueryCacher]
+ * Copyright (c) 2020-2022 Aayush Atharva
+ *
+ * SourceEngineQueryCacher is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * SourceEngineQueryCacher is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with SourceEngineQueryCacher.  If not, see <https://www.gnu.org/licenses/>.
+ */
 package com.aayushatharva.seqc.gameserver.a2splayer;
 
 import com.aayushatharva.seqc.Handler;
@@ -27,7 +44,7 @@ final class PlayerHandler extends SimpleChannelInboundHandler<DatagramPacket> {
         try (Buffer buffer = msg.content().copy()) {
             if (Statics.equals(Packets.A2S_CHALLENGE_RESPONSE_HEADER, buffer.readSplit(Packets.A2S_CHALLENGE_RESPONSE_HEADER_LEN))) {
                 Buffer response = ctx.bufferAllocator().allocate(Packets.A2S_PLAYER_REQUEST_HEADER_LEN + Packets.LEN_CODE)
-                        .writeBytes(Packets.A2S_PLAYER_REQUEST_HEADER)
+                        .writeBytes(Packets.A2S_PLAYER_REQUEST_HEADER.copy())
                         .writeBytes(buffer.readSplit(Packets.LEN_CODE));
 
                 ctx.writeAndFlush(response);

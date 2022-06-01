@@ -17,25 +17,47 @@
 
         <!-- Version Management -->
         <netty>5.0.0.Alpha2</netty>
+        <fastutil>8.5.8</fastutil>
         <log4j2>2.17.2</log4j2>
         <junit>5.8.2</junit>
         <surefire>2.22.1</surefire>
     </properties>
 
     <dependencies>
-        <!-- https://mvnrepository.com/artifact/io.netty/netty5-all -->
+        <!-- https://mvnrepository.com/artifact/io.netty/netty5-transport-classes-epoll -->
         <dependency>
             <groupId>io.netty</groupId>
-            <artifactId>netty5-all</artifactId>
+            <artifactId>netty5-transport-classes-epoll</artifactId>
             <version>${netty}</version>
         </dependency>
+
+        <dependency>
+            <groupId>io.netty</groupId>
+            <artifactId>netty5-transport-native-epoll</artifactId>
+            <version>${netty}</version>
+            <classifier>linux-x86_64</classifier>
+        </dependency>
+
+        <dependency>
+            <groupId>io.netty</groupId>
+            <artifactId>netty5-transport-native-epoll</artifactId>
+            <version>${netty}</version>
+            <classifier>linux-aarch_64</classifier>
+        </dependency>
+
+        <!-- https://mvnrepository.com/artifact/io.netty/netty5-codec -->
+        <dependency>
+            <groupId>io.netty</groupId>
+            <artifactId>netty5-codec</artifactId>
+            <version>${netty}</version>
+        </dependency>
+
         <!-- https://mvnrepository.com/artifact/it.unimi.dsi/fastutil-core -->
         <dependency>
             <groupId>it.unimi.dsi</groupId>
             <artifactId>fastutil-core</artifactId>
-            <version>8.5.8</version>
+            <version>${fastutil}</version>
         </dependency>
-
 
         <!-- https://mvnrepository.com/artifact/org.apache.logging.log4j/log4j-core -->
         <dependency>
