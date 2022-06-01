@@ -1,14 +1,17 @@
 package com.aayushatharva.seqc.gameserver.a2sinfo;
 
+import com.aayushatharva.seqc.gameserver.SplitPacketDecoder;
 import com.aayushatharva.seqc.utils.Configuration;
 import com.aayushatharva.seqc.utils.Packets;
 import io.netty5.bootstrap.Bootstrap;
 import io.netty5.buffer.api.BufferAllocator;
 import io.netty5.channel.Channel;
+import io.netty5.channel.ChannelInitializer;
 import io.netty5.channel.ChannelOption;
 import io.netty5.channel.EventLoopGroup;
 import io.netty5.channel.MultithreadEventLoopGroup;
 import io.netty5.channel.nio.NioHandler;
+import io.netty5.channel.socket.DatagramChannel;
 import io.netty5.channel.socket.nio.NioDatagramChannel;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -32,7 +35,13 @@ public final class InfoClient extends Thread {
                     .group(EVENT_LOOP)
                     .channelFactory(NioDatagramChannel::new)
                     .option(ChannelOption.BUFFER_ALLOCATOR, BufferAllocator.offHeapPooled())
-                    .handler(new InfoHandler());
+                    .handler(new ChannelInitializer<DatagramChannel>() {
+                        @Override
+                        protected void initChannel(DatagramChannel ch) {
+                            ch.pipeline().addLast(new SplitPacketDecoder());
+                            ch.pipeline().addLast(new InfoHandler());
+                        }
+                    });
 
             Channel channel = bootstrap.connect(Configuration.GAME_ADDRESS).sync().get();
 

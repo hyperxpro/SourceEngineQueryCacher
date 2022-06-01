@@ -4,7 +4,6 @@ import com.aayushatharva.seqc.utils.Cache;
 import com.aayushatharva.seqc.utils.Configuration;
 import io.netty5.buffer.BufferUtil;
 import io.netty5.buffer.api.Buffer;
-import io.netty5.buffer.api.BufferAllocator;
 import io.netty5.buffer.api.Resource;
 import io.netty5.buffer.api.Send;
 import io.netty5.buffer.api.internal.Statics;
@@ -15,9 +14,9 @@ import io.netty5.channel.socket.DatagramPacket;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.SplittableRandom;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import static com.aayushatharva.seqc.utils.Packets.A2S_CHALLENGE_RESPONSE_HEADER;
 import static com.aayushatharva.seqc.utils.Packets.A2S_CHALLENGE_RESPONSE_HEADER_LEN;
@@ -42,94 +41,93 @@ public final class Handler extends SimpleChannelInboundHandler<DatagramPacket> {
     private static final boolean IS_LOGGER_DEBUG_ENABLED = logger.isDebugEnabled();
 
     // Buffer for `A2S_INFO` Packet
-    public List<Buffer> A2S_INFO = new ArrayList<>();
+    public List<Buffer> A2S_INFO = new CopyOnWriteArrayList<>();
 
     // Buffer for `A2S_PLAYER` Packet
-    public List<Buffer> A2S_PLAYER = new ArrayList<>();
+    public List<Buffer> A2S_PLAYER = new CopyOnWriteArrayList<>();
 
     // Buffer for `A2S_RULES` Packet
-    public List<Buffer> A2S_RULES = new ArrayList<>();
+    public List<Buffer> A2S_RULES = new CopyOnWriteArrayList<>();
 
     protected void messageReceived(ChannelHandlerContext ctx, DatagramPacket packet) {
-        int pckLength = packet.content().readableBytes();
+        try (Buffer buffer = packet.content().makeReadOnly()) {
+            int pckLength = buffer.readableBytes();
 
-        if (Configuration.STATS_PPS)
-            Stats.PPS.incrementAndGet();
+            if (Configuration.STATS_PPS)
+                Stats.PPS.incrementAndGet();
 
-        if (Configuration.STATS_BPS)
-            Stats.BPS.addAndGet(pckLength);
+            if (Configuration.STATS_BPS)
+                Stats.BPS.addAndGet(pckLength);
 
-        /*
-         * If A2S_INFO or A2S_PLAYER is not readable or If A2S_RULE is enabled but not readable,
-         * drop request because we've nothing to reply.
-         */
-        if (A2S_INFO.readableBytes() == 0 || A2S_PLAYER.readableBytes() == 0 || (Configuration.ENABLE_A2S_RULE && A2S_RULES.readableBytes() == 0)) {
-            logger.error("Dropping Request, Cache is not ready. A2S_INFO: {}, A2S_PLAYER: {}, A2S_RULES: {}", A2S_INFO, A2S_PLAYER, A2S_RULES);
-            return;
-        }
-
-        /*
-         * Packet size of 25, 29 bytes and 9 bytes only will be processed rest will be dropped.
-         *
-         * A2S_INFO = 25 Bytes, 29 bytes with padded challenge code
-         * A2S_Player = 9 Bytes
-         * A2S_RULES = 9 Bytes
-         */
-        if (pckLength == 9 || pckLength == 25 || pckLength == 29) {
-
-            if (Statics.equals(A2S_INFO_REQUEST, packet.content().split(A2S_INFO_REQUEST_LEN))) {
-
-                /*
-                 * 1. Packet equals to `A2S_INFO_REQUEST` with length==25 (A2S_INFO without challenge code)
-                 * then we'll check if A2SInfoChallenge is enabled or not. If it's enabled then
-                 *  we'll send response of A2S_Challenge Packet, otherwise we'll send A2S_INFO Packet.
-                 *
-                 * 2. Validate A2S_INFO Challenge Response (length==29) and send A2S_INFO Packet.
-                 */
-                if (pckLength == A2S_INFO_REQUEST_LEN) {
-                    if (Configuration.ENABLE_A2S_INFO_CHALLENGE) {
-                        sendA2SChallenge(ctx, packet);
-                    } else {
-                        sendA2SInfoResponse(ctx, packet, true);
-                    }
-                    return;
-                } else if (pckLength == A2S_INFO_REQUEST_LEN + LEN_CODE) { // 4 Byte padded challenge Code
-                    sendA2SInfoResponse(ctx, packet, false);
-                    return;
-                }
-            } else if (Statics.equals(A2S_PLAYER_REQUEST_HEADER, packet.content().split(A2S_PLAYER_REQUEST_HEADER_LEN))) {
-
-                /*
-                 * 1. Packet equals to `A2S_PLAYER_CHALLENGE_REQUEST_1` or `A2S_PLAYER_CHALLENGE_REQUEST_2`
-                 * then we'll send response of A2S_Player Challenge Packet.
-                 */
-                if (Statics.equals(packet.content(), A2S_PLAYER_CHALLENGE_REQUEST_2) || Statics.equals(packet.content(), A2S_PLAYER_CHALLENGE_REQUEST_1)) {
-                    sendA2SChallenge(ctx, packet);
-                } else {
-                    // 2. Validate A2S_Player Challenge Response and send A2S_Player Packet.
-                    sendA2SPlayerResponse(ctx, packet);
-                }
-                return;
-            } else if (Configuration.ENABLE_A2S_RULE && Statics.equals(A2S_RULES_REQUEST_HEADER, packet.content().split(A2S_RULES_REQUEST_HEADER_LEN))) {
-
-                /*
-                 * 1. Packet equals `A2S_RULES_CHALLENGE_REQUEST_1` or `A2S_RULES_CHALLENGE_REQUEST_2`
-                 * then we'll send response of A2S_Challenge Packet.
-                 */
-                if (Statics.equals(packet.content(), A2S_RULES_CHALLENGE_REQUEST_2) || Statics.equals(packet.content(), A2S_RULES_CHALLENGE_REQUEST_1)) {
-                    sendA2SChallenge(ctx, packet);
-                } else {
-                    // 2. Validate A2S_RULES Challenge Response and send A2S_Rules Packet.
-                    sendA2SRulesResponse(ctx, packet);
-                }
+            /*
+             * If A2S_INFO or A2S_PLAYER is not readable or If A2S_RULE is enabled but not readable,
+             * drop request because we've nothing to reply.
+             */
+            if (A2S_INFO.size() == 0 || (Configuration.ENABLE_A2S_RULE && A2S_PLAYER.size() == 0) || (Configuration.ENABLE_A2S_RULE && A2S_RULES.size() == 0)) {
+                logger.error("Dropping Request, Cache is not ready. A2S_INFO: {}, A2S_PLAYER: {}, A2S_RULES: {}", A2S_INFO, A2S_PLAYER, A2S_RULES);
                 return;
             }
-        }
 
-        if (IS_LOGGER_DEBUG_ENABLED) {
-            logger.debug("Dropping Packet of Length {} bytes from {}:{} ----- {}", pckLength,
-                    packet.sender().getAddress().getHostAddress(), packet.sender().getPort(),
-                    BufferUtil.hexDump(packet.content()));
+            /*
+             * Packet size of 25, 29 bytes and 9 bytes only will be processed rest will be dropped.
+             *
+             * A2S_INFO = 25 Bytes, 29 bytes with padded challenge code
+             * A2S_Player = 9 Bytes
+             * A2S_RULES = 9 Bytes
+             */
+            if (pckLength == 9 || pckLength == 25 || pckLength == 29) {
+
+                if (Statics.equals(A2S_INFO_REQUEST, buffer.split(A2S_INFO_REQUEST_LEN))) {
+                    /*
+                     * 1. Packet equals to `A2S_INFO_REQUEST` with length==25 (A2S_INFO without challenge code)
+                     * then we'll check if A2SInfoChallenge is enabled or not. If it's enabled then
+                     *  we'll send response of A2S_Challenge Packet, otherwise we'll send A2S_INFO Packet.
+                     *
+                     * 2. Validate A2S_INFO Challenge Response (length==29) and send A2S_INFO Packet.
+                     */
+                    if (pckLength == A2S_INFO_REQUEST_LEN) {
+                        if (Configuration.ENABLE_A2S_INFO_CHALLENGE) {
+                            sendA2SChallenge(ctx, packet);
+                        } else {
+                            sendA2SInfoResponse(ctx, packet, true);
+                        }
+                        return;
+                    } else if (pckLength == A2S_INFO_REQUEST_LEN + LEN_CODE) { // 4 Byte padded challenge Code
+                        sendA2SInfoResponse(ctx, packet, false);
+                        return;
+                    }
+                } else if (Statics.equals(A2S_PLAYER_REQUEST_HEADER, buffer.split(A2S_PLAYER_REQUEST_HEADER_LEN))) {
+                    /*
+                     * 1. Packet equals to `A2S_PLAYER_CHALLENGE_REQUEST_1` or `A2S_PLAYER_CHALLENGE_REQUEST_2`
+                     * then we'll send response of A2S_Player Challenge Packet.
+                     */
+                    if (Statics.equals(buffer, A2S_PLAYER_CHALLENGE_REQUEST_2) || Statics.equals(buffer, A2S_PLAYER_CHALLENGE_REQUEST_1)) {
+                        sendA2SChallenge(ctx, packet);
+                    } else {
+                        // 2. Validate A2S_Player Challenge Response and send A2S_Player Packet.
+                        sendA2SPlayerResponse(ctx, packet);
+                    }
+                    return;
+                } else if (Configuration.ENABLE_A2S_RULE && Statics.equals(A2S_RULES_REQUEST_HEADER, buffer.split(A2S_RULES_REQUEST_HEADER_LEN))) {
+                    /*
+                     * 1. Packet equals `A2S_RULES_CHALLENGE_REQUEST_1` or `A2S_RULES_CHALLENGE_REQUEST_2`
+                     * then we'll send response of A2S_Challenge Packet.
+                     */
+                    if (Statics.equals(buffer, A2S_RULES_CHALLENGE_REQUEST_2) || Statics.equals(buffer, A2S_RULES_CHALLENGE_REQUEST_1)) {
+                        sendA2SChallenge(ctx, packet);
+                    } else {
+                        // 2. Validate A2S_RULES Challenge Response and send A2S_Rules Packet.
+                        sendA2SRulesResponse(ctx, packet);
+                    }
+                    return;
+                }
+            }
+
+            if (IS_LOGGER_DEBUG_ENABLED) {
+                logger.debug("Dropping Packet of Length {} bytes from {}:{} ----- {}", pckLength,
+                        packet.sender().getAddress().getHostAddress(), packet.sender().getPort(),
+                        BufferUtil.hexDump(packet.content()));
+            }
         }
     }
 
@@ -148,7 +146,7 @@ public final class Handler extends SimpleChannelInboundHandler<DatagramPacket> {
 
     private void sendA2SInfoResponse(ChannelHandlerContext ctx, DatagramPacket datagramPacket, boolean direct) {
         // If 'direct' is 'true' then we will short-circuit and send A2S_INFO directly without challenge code validation.
-        // If not then we will validate IP address and challenge code and upon successful validation, we will send A2S_INFO
+        // If not then we will validate IP address and challenge code and upon successful validation, we will send A2S_INFO packet.
         if (direct || isIPValid(datagramPacket, datagramPacket.content().readInt(), "A2S_INFO")) {
             for (Buffer buffer : A2S_INFO) {
                 ctx.writeAndFlush(new DatagramPacket(buffer.copy(), datagramPacket.sender()));
@@ -158,7 +156,9 @@ public final class Handler extends SimpleChannelInboundHandler<DatagramPacket> {
 
     private void sendA2SPlayerResponse(ChannelHandlerContext ctx, DatagramPacket datagramPacket) {
         if (isIPValid(datagramPacket, datagramPacket.content().readInt(), "A2S_PLAYER")) {
+            System.out.println("PLAYER");
             for (Buffer buffer : A2S_PLAYER) {
+                System.out.println("PLAYE!!!!!!!!!!!!R");
                 ctx.writeAndFlush(new DatagramPacket(buffer.copy(), datagramPacket.sender()));
             }
         }
@@ -176,10 +176,10 @@ public final class Handler extends SimpleChannelInboundHandler<DatagramPacket> {
         // Look for Client IP Address in Cache and load Challenge Code Value from it.
         // Some services reuse the same challenge code to retrieve all three packet types.
         // We want that as it helps minimize traffic in the internet. Hence, we only get() the code, not remove() it here.
-        Integer storedChallengeCode = Cache.CHALLENGE_MAP.get(new Cache.ByteKey(datagramPacket.sender().getAddress().getAddress()));
+        int storedChallengeCode = Cache.CHALLENGE_MAP.getInt(new Cache.ByteKey(datagramPacket.sender().getAddress().getAddress()));
 
-        // If Cache Value is not NULL it means we found the IP, and now we'll validate it.
-        if (storedChallengeCode != null) {
+        // If Cache Value is not '0' (zero) it means we found the IP, and now we'll validate it.
+        if (storedChallengeCode != 0) {
             // Match received challenge code against Cache Stored challenge code
             if (storedChallengeCode == challengeCode) {
                 if (IS_LOGGER_DEBUG_ENABLED) {
@@ -206,17 +206,20 @@ public final class Handler extends SimpleChannelInboundHandler<DatagramPacket> {
 
     public void receiveA2sInfo(List<Send<Buffer>> buffers) {
         A2S_INFO.forEach(Resource::close);
-        buffers.forEach(Send::receive);
+        A2S_INFO.clear();
+        buffers.forEach(bufferSend -> A2S_INFO.add(bufferSend.receive()));
     }
 
     public void receiveA2sPlayer(List<Send<Buffer>> buffers) {
         A2S_PLAYER.forEach(Resource::close);
-        buffers.forEach(Send::receive);
+        A2S_PLAYER.clear();
+        buffers.forEach(bufferSend -> A2S_PLAYER.add(bufferSend.receive()));
     }
 
     public void receiveA2sRule(List<Send<Buffer>> buffers) {
         A2S_RULES.forEach(Resource::close);
-        buffers.forEach(Send::receive);
+        A2S_RULES.clear();
+        buffers.forEach(bufferSend -> A2S_RULES.add(bufferSend.receive()));
     }
 
     @Override

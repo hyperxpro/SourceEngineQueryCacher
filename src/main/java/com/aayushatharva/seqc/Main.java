@@ -5,7 +5,6 @@ import com.aayushatharva.seqc.gameserver.a2splayer.PlayerClient;
 import com.aayushatharva.seqc.gameserver.a2srules.RulesClient;
 import com.aayushatharva.seqc.utils.Cache;
 import com.aayushatharva.seqc.utils.Configuration;
-import io.netty.buffer.PooledByteBufAllocator;
 import io.netty5.bootstrap.Bootstrap;
 import io.netty5.buffer.api.BufferAllocator;
 import io.netty5.channel.Channel;
@@ -20,7 +19,6 @@ import io.netty5.channel.epoll.EpollHandler;
 import io.netty5.channel.nio.NioHandler;
 import io.netty5.channel.socket.InternetProtocolFamily;
 import io.netty5.channel.socket.nio.NioDatagramChannel;
-import io.netty5.channel.unix.UnixChannelOption;
 import io.netty5.util.concurrent.Future;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -31,12 +29,12 @@ import java.util.List;
 import java.util.concurrent.ExecutionException;
 
 public final class Main {
-    private static final Logger logger = LogManager.getLogger(Main.class);
-
     static {
-        System.setProperty("java.net.preferIPv4Stack", "true");
         System.setProperty("log4j.configurationFile", "log4j2.xml");
+        System.setProperty("java.net.preferIPv4Stack", "true");
     }
+
+    private static final Logger logger = LogManager.getLogger(Main.class);
 
     public static EventLoopGroup eventLoopGroup;
     private static Stats stats;
@@ -50,12 +48,22 @@ public final class Main {
             Configuration.setup(args[0]);
 
             IoHandlerFactory ioHandlerFactory;
-            if (Epoll.isAvailable()) {
-                logger.info("Using Epoll Transport");
+            if (Configuration.TRANSPORT.equalsIgnoreCase("epoll")) {
+                if (Epoll.isAvailable()) {
+                    logger.info("Using Epoll Transport");
+                } else {
+                    logger.error("Epoll Transport is not available");
+                    System.exit(1);
+                }
+
                 ioHandlerFactory = EpollHandler.newFactory();
-            } else {
+            } else if (Configuration.TRANSPORT.equalsIgnoreCase("nio")) {
                 logger.info("Using Nio Transport");
                 ioHandlerFactory = NioHandler.newFactory();
+            } else {
+                logger.error("Unknown Transport");
+                System.exit(1);
+                return;
             }
 
             eventLoopGroup = new MultithreadEventLoopGroup(Configuration.THREADS, ioHandlerFactory);
@@ -80,7 +88,12 @@ public final class Main {
                     .option(ChannelOption.RCVBUF_ALLOCATOR, new FixedRecvBufferAllocator(Configuration.RECEIVE_ALLOCATOR_SIZE).respectMaybeMoreData(false))
                     .handler(Handler.INSTANCE);
 
-            for (int i = 0; i < Configuration.THREADS; i++) {
+            int bindRounds = 1;
+            if (Configuration.TRANSPORT.equalsIgnoreCase("epoll")) {
+                bindRounds = Configuration.THREADS;
+            }
+
+            for (int i = 0; i < bindRounds; i++) {
                 // Bind and Start Server
                 Future<Channel> channelFuture = bootstrap.bind(Configuration.SERVER_ADDRESS.getAddress(), Configuration.SERVER_ADDRESS.getPort())
                         .addListener(future -> {
@@ -90,7 +103,6 @@ public final class Main {
                                         ((InetSocketAddress) future.get().localAddress()).getPort());
                             } else {
                                 logger.error("Caught Error While Starting Server", future.cause());
-                                System.err.println("Shutting down...");
                                 System.exit(1);
                             }
                         });
@@ -113,10 +125,14 @@ public final class Main {
             rulesClient = new RulesClient("A2SRulesClient");
 
             infoClient.start();
-            playerClient.start();
 
-            if (Configuration.ENABLE_A2S_RULE)
+            if (Configuration.ENABLE_A2S_PLAYER) {
+                playerClient.start();
+            }
+
+            if (Configuration.ENABLE_A2S_RULE) {
                 rulesClient.start();
+            }
         } catch (Exception ex) {
             logger.atError().withThrowable(ex).log("Error while Initializing");
         }

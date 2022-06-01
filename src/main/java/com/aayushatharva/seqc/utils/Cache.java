@@ -1,10 +1,8 @@
 package com.aayushatharva.seqc.utils;
 
 import com.shieldblaze.expressgateway.common.map.SelfExpiringMap;
-import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 
 import java.time.Duration;
-import java.util.Map;
 
 public final class Cache {
 
@@ -14,9 +12,7 @@ public final class Cache {
      * Key: IPv4 Byte array
      * Value: Challenge code Byte array
      */
-    public static final Map<ByteKey, Integer> CHALLENGE_MAP = new SelfExpiringMap<>(
-            new Object2IntOpenHashMap<>(), Duration.ofMillis(Configuration.CHALLENGE_TTL), false
-    );
+    public static final SelfExpiringMap CHALLENGE_MAP = new SelfExpiringMap(Duration.ofMillis(Configuration.CHALLENGE_TTL));
 
     public static final class ByteKey {
 

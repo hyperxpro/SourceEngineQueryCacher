@@ -9,6 +9,14 @@ public final class Packets {
     public static final int LEN_CODE = 4;
 
     /**
+     * FFFFFFFE
+     */
+    public static final Buffer SPLIT_PACKET_HEADER = BufferAllocator.offHeapPooled()
+            .copyOf(new byte[]{-1, -1, -1, -2}).makeReadOnly();
+
+    public static final int SPLIT_PACKET_LEN = 4;
+
+    /**
      * FFFFFFFF41
      */
     public static final Buffer A2S_CHALLENGE_RESPONSE_HEADER = BufferAllocator.offHeapPooled()
@@ -36,14 +44,6 @@ public final class Packets {
             .copyOf(new byte[]{-1, -1, -1, -1, 73}).makeReadOnly();
 
     public static final int A2S_INFO_RESPONSE_HEADER_LEN = 5;
-
-    /**
-     * FFFFFFFE49
-     */
-    public static final Buffer A2S_INFO_RESPONSE_HEADER_SPLIT = BufferAllocator.offHeapPooled()
-            .copyOf(new byte[]{-1, -1, -1, -2, 73}).makeReadOnly();
-
-    public static final int A2S_INFO_RESPONSE_HEADER_SPLIT_LEN = 5;
 
 
     //A2S_RULES
@@ -79,14 +79,6 @@ public final class Packets {
 
     public static final int A2S_RULES_RESPONSE_HEADER_LEN = 5;
 
-    /**
-     * FFFFFFFE45
-     */
-    public static final Buffer A2S_RULES_RESPONSE_HEADER_SPLIT = BufferAllocator.offHeapPooled()
-            .copyOf(new byte[]{-1, -1, -1, -2, 69}).makeReadOnly();
-
-    public static final int A2S_RULES_RESPONSE_HEADER_SPLIT_LEN = 5;
-
 
     //A2S_PLAYER
     /**
@@ -121,14 +113,6 @@ public final class Packets {
             .copyOf(new byte[]{-1, -1, -1, -1, 68}).makeReadOnly();
 
     public static final int A2S_PLAYER_RESPONSE_HEADER_LEN = 5;
-
-    /**
-     * FFFFFFFE44
-     */
-    public static final Buffer A2S_PLAYER_RESPONSE_HEADER_SPLIT = BufferAllocator.offHeapPooled()
-            .copyOf(new byte[]{-1, -1, -1, -2, 68}).makeReadOnly();
-
-    public static final int A2S_PLAYER_RESPONSE_HEADER_SPLIT_LEN = 5;
 
     private Packets() {
         // Prevent outside initialization

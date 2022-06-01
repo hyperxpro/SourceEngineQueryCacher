@@ -77,11 +77,14 @@ public final class Configuration {
 
             SEND_BUFFER_SIZE = Integer.parseInt(Data.getProperty("SendBufferSize"));
             RECEIVE_BUFFER_SIZE = Integer.parseInt(Data.getProperty("ReceiveBufferSize"));
-            RECEIVE_ALLOCATOR_SIZE = Integer.parseInt(Data.getProperty("ReceiveBufferSize"));
+            RECEIVE_ALLOCATOR_SIZE = Integer.parseInt(Data.getProperty("ReceiveAllocatorBufferSize"));
 
             ENABLE_A2S_INFO_CHALLENGE = Boolean.parseBoolean(Data.getProperty("EnableA2SInfoChallenge"));
             ENABLE_A2S_PLAYER = Boolean.parseBoolean(Data.getProperty("EnableA2SPlayer"));
             ENABLE_A2S_RULE = Boolean.parseBoolean(Data.getProperty("EnableA2SRule"));
+        } catch (Exception ex) {
+            System.out.println("Caught Error: " + ex.getMessage());
+            System.exit(1);
         }
     }
 

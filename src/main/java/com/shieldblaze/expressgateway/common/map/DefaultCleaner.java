@@ -6,17 +6,12 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
-/**
- *
- * @param <K> Key
- * @param <V> Value
- */
-final class DefaultCleaner<K, V> extends Cleaner<K, V> {
+public final class DefaultCleaner extends Cleaner {
 
     private final ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
     private final ScheduledFuture<?> scheduledFuture;
 
-    DefaultCleaner(SelfExpiringMap<K, V> selfExpiringMap) {
+    public DefaultCleaner(SelfExpiringMap selfExpiringMap) {
         super(selfExpiringMap);
         scheduledFuture = executorService.scheduleWithFixedDelay(this, 10, 10, TimeUnit.MILLISECONDS);
     }

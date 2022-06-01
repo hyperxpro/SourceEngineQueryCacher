@@ -17,26 +17,28 @@
  */
 package com.shieldblaze.expressgateway.common.map;
 
+import com.aayushatharva.seqc.utils.Cache;
+import it.unimi.dsi.fastutil.objects.Object2IntMap;
+
 import java.io.Closeable;
 import java.io.IOException;
-import java.util.Map;
 
 /**
  * Base implementation of Cleaner for auto-removing expired entries.
  */
-public abstract class Cleaner<K, V> implements Runnable, Closeable {
+public abstract class Cleaner implements Runnable, Closeable {
 
-    private final SelfExpiringMap<K, V> selfExpiringMap;
+    private final SelfExpiringMap selfExpiringMap;
 
-    public Cleaner(SelfExpiringMap<K, V> selfExpiringMap) {
+    public Cleaner(SelfExpiringMap selfExpiringMap) {
         this.selfExpiringMap = selfExpiringMap;
     }
 
     @Override
     public void run() {
-        for (Map.Entry<K, V> entry : selfExpiringMap.entrySet()) {
+        for (Object2IntMap.Entry<Cache.ByteKey> entry : selfExpiringMap.object2IntEntrySet()) {
             if (selfExpiringMap.isExpired(entry.getKey())) {
-                selfExpiringMap.entryRemovedListener().removed(entry.getKey(), selfExpiringMap.remove(entry.getKey()));
+                selfExpiringMap.remove(entry.getKey());
             }
         }
     }

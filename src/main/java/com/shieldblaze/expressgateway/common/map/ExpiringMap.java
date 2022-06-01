@@ -17,144 +17,75 @@
  */
 package com.shieldblaze.expressgateway.common.map;
 
+import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
+
 import java.time.Duration;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
-import java.util.function.BiConsumer;
 
 /**
  * Base Expiring Map Implementation.
- *
- * @param <K> Key
- * @param <V> Value
  */
-public abstract class ExpiringMap<K, V> implements Map<K, V> {
+public abstract class ExpiringMap<ByteKey> extends Object2IntOpenHashMap<ByteKey> {
 
-    private final Map<K, V> storageMap;
     private final Map<Object, Long> timestampsMap = new HashMap<>();
     private final long ttlMillis;
-    private final boolean autoRenew;
-    private final EntryRemovedListener<V> entryRemovedListener;
+    private final EntryRemovedListener<ByteKey> entryRemovedListener;
 
     /**
-     * Create a new {@link ExpiringMap} Instance and use {@link HashMap} as
-     * default {@code storageMap} and set {@code autoRenew} to {@code true}.
+     * Create a new {@link ExpiringMap} Instance.
      *
-     * @param ttlDuration TTL (Time-to-live) duration of entries
+     * @param ttlDuration TTL (Time-to-live) Duration of Entries
      */
     public ExpiringMap(Duration ttlDuration) {
-        this(new HashMap<>(), ttlDuration, true);
-    }
-
-    /**
-     * Create a new {@link ExpiringMap} Instance.
-     *
-     * @param storageMap  {@link Map} Implementation to use for storing entries
-     * @param ttlDuration TTL (Time-to-live) Duration of Entries
-     * @param autoRenew   Set to {@code true} if entries will be auto-renewed on {@link #get(Object)} call
-     *                    else set to {@code false}
-     */
-    public ExpiringMap(Map<K, V> storageMap, Duration ttlDuration, boolean autoRenew) {
-        this(storageMap, ttlDuration, autoRenew, new IgnoreEntryRemovedListener<>());
-    }
-
-    /**
-     * Create a new {@link ExpiringMap} Instance.
-     *
-     * @param storageMap           {@link Map} Implementation to use for storing entries
-     * @param ttlDuration          TTL (Time-to-live) Duration of Entries
-     * @param autoRenew            Set to {@code true} if entries will be auto-renewed on {@link #get(Object)} call
-     *                             else set to {@code false}
-     * @param entryRemovedListener {@link EntryRemovedListener} Instance
-     */
-    public ExpiringMap(Map<K, V> storageMap, Duration ttlDuration, boolean autoRenew, EntryRemovedListener<V> entryRemovedListener) {
-        this.storageMap = Objects.requireNonNull(storageMap, "StorageMap");
         ttlMillis = ttlDuration.toMillis();
-        this.autoRenew = autoRenew;
-
-        if (this.storageMap.size() != 0) {
-            throw new IllegalArgumentException("StorageMap Size must be Zero (0).");
-        }
-
-        this.entryRemovedListener = Objects.requireNonNull(entryRemovedListener, "EntryRemovedListener");
+        this.entryRemovedListener = new IgnoreEntryRemovedListener<>();
     }
 
     @Override
     public int size() {
-        return storageMap.size();
+        return super.size();
     }
 
     @Override
     public boolean isEmpty() {
-        return storageMap.isEmpty();
+        return super.isEmpty();
     }
 
     @Override
     public boolean containsKey(Object key) {
-        return storageMap.containsKey(key);
+        return super.containsKey(key);
     }
 
     @Override
     public boolean containsValue(Object value) {
-        return storageMap.containsKey(value);
+        return super.containsKey(value);
     }
 
     @Override
-    public V get(Object key) {
-        V v = storageMap.get(key);
-        if (autoRenew) {
-            timestampsMap.put(key, System.currentTimeMillis());
-        }
-        return v;
+    public Integer get(Object key) {
+        return super.get(key);
     }
 
     @Override
-    public V put(K key, V value) {
+    public Integer put(ByteKey key, Integer value) {
         timestampsMap.put(key, System.currentTimeMillis());
-        return storageMap.put(key, value);
+        return super.put(key, value);
     }
 
     @Override
-    public V remove(Object key) {
+    public Integer remove(Object key) {
         timestampsMap.remove(key);
-        return storageMap.remove(key);
-    }
-
-    @Override
-    public void putAll(Map<? extends K, ? extends V> m) {
-        m.forEach((BiConsumer<K, V>) this::put);
+        return super.remove(key);
     }
 
     @Override
     public void clear() {
         timestampsMap.clear();
-        storageMap.clear();
+        super.clear();
     }
 
-    @Override
-    public Set<K> keySet() {
-        return storageMap.keySet();
-    }
-
-    @Override
-    public Collection<V> values() {
-        return storageMap.values();
-    }
-
-    @Override
-    public Set<Entry<K, V>> entrySet() {
-        return storageMap.entrySet();
-    }
-
-    @Override
-    public String toString() {
-        return storageMap.toString();
-    }
-
-    protected EntryRemovedListener<V> entryRemovedListener() {
+    protected EntryRemovedListener<ByteKey> entryRemovedListener() {
         return entryRemovedListener;
     }
 

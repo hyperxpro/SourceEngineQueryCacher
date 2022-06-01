@@ -17,39 +17,22 @@
  */
 package com.shieldblaze.expressgateway.common.map;
 
+import com.aayushatharva.seqc.utils.Cache;
+
 import java.io.Closeable;
 import java.io.IOException;
 import java.time.Duration;
-import java.util.Map;
 
 /**
  * {@link SelfExpiringMap} automatically expires entries using a {@link Cleaner}.
- *
- * @param <K> Key
- * @param <V> Value
  */
-public final class SelfExpiringMap<K, V> extends ExpiringMap<K, V> implements Closeable {
+public final class SelfExpiringMap extends ExpiringMap<Cache.ByteKey> implements Closeable {
 
-    private final Cleaner<K, V> cleaner;
+    private final Cleaner cleaner;
 
     public SelfExpiringMap(Duration duration) {
         super(duration);
-        cleaner = new DefaultCleaner<>(this);
-    }
-
-    public SelfExpiringMap(Duration duration, Cleaner<K, V> cleaner) {
-        super(duration);
-        this.cleaner = cleaner;
-    }
-
-    public SelfExpiringMap(Map<K, V> storageMap, Duration duration, boolean autoRenew) {
-        super(storageMap, duration, autoRenew);
-        cleaner = new DefaultCleaner<>(this);
-    }
-
-    public SelfExpiringMap(Map<K, V> storageMap, Duration duration, boolean autoRenew, Cleaner<K, V> cleaner) {
-        super(storageMap, duration, autoRenew);
-        this.cleaner = cleaner;
+        this.cleaner = new DefaultCleaner(this);
     }
 
     @Override

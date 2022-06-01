@@ -29,13 +29,13 @@
             <artifactId>netty5-all</artifactId>
             <version>${netty}</version>
         </dependency>
-
-        <!-- https://mvnrepository.com/artifact/it.unimi.dsi/fastutil -->
+        <!-- https://mvnrepository.com/artifact/it.unimi.dsi/fastutil-core -->
         <dependency>
             <groupId>it.unimi.dsi</groupId>
-            <artifactId>fastutil</artifactId>
+            <artifactId>fastutil-core</artifactId>
             <version>8.5.8</version>
         </dependency>
+
 
         <!-- https://mvnrepository.com/artifact/org.apache.logging.log4j/log4j-core -->
         <dependency>
