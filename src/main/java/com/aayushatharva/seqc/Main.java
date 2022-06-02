@@ -72,6 +72,7 @@ public final class Main {
                 } else {
                     logger.error("Epoll Transport is not available");
                     System.exit(1);
+                    return;
                 }
             } else if (Configuration.TRANSPORT.equalsIgnoreCase("nio")) {
                 logger.info("Using Nio Transport");
