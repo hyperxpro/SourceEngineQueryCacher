@@ -67,7 +67,6 @@ public final class Handler extends SimpleChannelInboundHandler<DatagramPacket> {
     public final List<Buffer> A2S_RULES = new ObjectArrayList<>();
 
     protected void messageReceived(ChannelHandlerContext ctx, DatagramPacket packet) {
-        long time = System.nanoTime();
         try (Buffer buffer = packet.content().copy().makeReadOnly()) {
             int pckLength = packet.content().readableBytes();
 
@@ -103,7 +102,6 @@ public final class Handler extends SimpleChannelInboundHandler<DatagramPacket> {
                     } else {
                         sendA2SInfoResponse(ctx, packet, false);
                     }
-                    System.out.println(System.nanoTime() - time);
                     return;
                 }
                 buffer.resetOffsets();
@@ -168,6 +166,10 @@ public final class Handler extends SimpleChannelInboundHandler<DatagramPacket> {
         // If 'direct' is 'true' then we will short-circuit and send A2S_INFO directly without challenge code validation.
         // If not then we will validate IP address and challenge code and upon successful validation, we will send A2S_INFO packet.
         if (direct || isIPValid(datagramPacket.sender(), datagramPacket, "A2S_INFO")) {
+            if (A2S_INFO.size() == 1) {
+                ctx.writeAndFlush(new DatagramPacket(A2S_INFO.get(0).copy(), datagramPacket.sender()));
+                return;
+            }
             for (int i = 0; i < A2S_INFO.size(); i++) {
                 ctx.writeAndFlush(new DatagramPacket(A2S_INFO.get(i).copy(), datagramPacket.sender()));
             }
@@ -176,6 +178,10 @@ public final class Handler extends SimpleChannelInboundHandler<DatagramPacket> {
 
     private void sendA2SPlayerResponse(ChannelHandlerContext ctx, DatagramPacket datagramPacket) {
         if (isIPValid(datagramPacket.sender(), datagramPacket, "A2S_PLAYER")) {
+            if (A2S_PLAYER.size() == 1) {
+                ctx.writeAndFlush(new DatagramPacket(A2S_PLAYER.get(0).copy(), datagramPacket.sender()));
+                return;
+            }
             for (int i = 0; i < A2S_PLAYER.size(); i++) {
                 ctx.writeAndFlush(new DatagramPacket(A2S_PLAYER.get(i).copy(), datagramPacket.sender()));
             }
@@ -184,6 +190,10 @@ public final class Handler extends SimpleChannelInboundHandler<DatagramPacket> {
 
     private void sendA2SRulesResponse(ChannelHandlerContext ctx, DatagramPacket datagramPacket) {
         if (isIPValid(datagramPacket.sender(), datagramPacket, "A2S_RULES")) {
+            if (A2S_RULES.size() == 1) {
+                ctx.writeAndFlush(new DatagramPacket(A2S_RULES.get(0).copy(), datagramPacket.sender()));
+                return;
+            }
             for (int i = 0; i < A2S_RULES.size(); i++) {
                 ctx.writeAndFlush(new DatagramPacket(A2S_RULES.get(i).copy(), datagramPacket.sender()));
             }
@@ -249,11 +259,7 @@ public final class Handler extends SimpleChannelInboundHandler<DatagramPacket> {
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
-        if (cause instanceof BufferClosedException || cause instanceof NullPointerException) {
-            // Ignore
-            return;
-        }
-        logger.error("Caught Error", cause);
+        // NO-OP; STFU!
     }
 
     private Handler() {
