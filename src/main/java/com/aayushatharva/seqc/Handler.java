@@ -22,8 +22,6 @@ import com.aayushatharva.seqc.utils.Configuration;
 import io.netty5.buffer.BufferUtil;
 import io.netty5.buffer.api.Buffer;
 import io.netty5.buffer.api.BufferClosedException;
-import io.netty5.buffer.api.Resource;
-import io.netty5.buffer.api.Send;
 import io.netty5.buffer.api.internal.Statics;
 import io.netty5.channel.ChannelHandler;
 import io.netty5.channel.ChannelHandlerContext;
@@ -36,7 +34,6 @@ import org.apache.logging.log4j.Logger;
 import java.net.InetSocketAddress;
 import java.util.List;
 import java.util.SplittableRandom;
-import java.util.concurrent.CopyOnWriteArrayList;
 
 import static com.aayushatharva.seqc.utils.Packets.A2S_CHALLENGE_RESPONSE_HEADER;
 import static com.aayushatharva.seqc.utils.Packets.A2S_CHALLENGE_RESPONSE_HEADER_LEN;
@@ -70,6 +67,7 @@ public final class Handler extends SimpleChannelInboundHandler<DatagramPacket> {
     public final List<Buffer> A2S_RULES = new ObjectArrayList<>();
 
     protected void messageReceived(ChannelHandlerContext ctx, DatagramPacket packet) {
+        long time = System.nanoTime();
         try (Buffer buffer = packet.content().copy().makeReadOnly()) {
             int pckLength = packet.content().readableBytes();
 
@@ -105,6 +103,7 @@ public final class Handler extends SimpleChannelInboundHandler<DatagramPacket> {
                     } else {
                         sendA2SInfoResponse(ctx, packet, false);
                     }
+                    System.out.println(System.nanoTime() - time);
                     return;
                 }
                 buffer.resetOffsets();
@@ -224,27 +223,33 @@ public final class Handler extends SimpleChannelInboundHandler<DatagramPacket> {
         }
     }
 
-    public void receiveA2sInfo(List<Buffer> buffers) {
-        A2S_INFO.forEach(Resource::close);
+    public synchronized void receiveA2sInfo(List<Buffer> buffers) {
+        for (int i = 0; i < A2S_INFO.size(); i++) {
+            A2S_INFO.get(i).close();
+        }
         A2S_INFO.clear();
         A2S_INFO.addAll(buffers);
     }
 
-    public void receiveA2sPlayer(List<Buffer> buffers) {
-        A2S_PLAYER.forEach(Resource::close);
+    public synchronized void receiveA2sPlayer(List<Buffer> buffers) {
+        for (int i = 0; i < A2S_PLAYER.size(); i++) {
+            A2S_PLAYER.get(i).close();
+        }
         A2S_PLAYER.clear();
         A2S_PLAYER.addAll(buffers);
     }
 
-    public void receiveA2sRule(List<Buffer> buffers) {
-        A2S_RULES.forEach(Resource::close);
+    public synchronized void receiveA2sRule(List<Buffer> buffers) {
+        for (int i = 0; i < A2S_RULES.size(); i++) {
+            A2S_RULES.get(i).close();
+        }
         A2S_RULES.clear();
         A2S_RULES.addAll(buffers);
     }
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
-        if (cause instanceof BufferClosedException) {
+        if (cause instanceof BufferClosedException || cause instanceof NullPointerException) {
             // Ignore
             return;
         }

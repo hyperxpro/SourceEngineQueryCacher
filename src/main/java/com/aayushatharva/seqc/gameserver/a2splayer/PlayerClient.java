@@ -38,7 +38,7 @@ import java.util.concurrent.ExecutionException;
 public final class PlayerClient extends Thread {
 
     private static final Logger logger = LogManager.getLogger(PlayerClient.class);
-    private static final EventLoopGroup EVENT_LOOP = new MultithreadEventLoopGroup(NioHandler.newFactory());
+    private static final EventLoopGroup EVENT_LOOP = new MultithreadEventLoopGroup(1, NioHandler.newFactory());
     private boolean keepRunning = true;
 
     public PlayerClient(String name) {
@@ -63,7 +63,7 @@ public final class PlayerClient extends Thread {
             Channel channel = bootstrap.connect(Configuration.GAME_ADDRESS).sync().get();
 
             while (keepRunning) {
-                channel.writeAndFlush(Packets.A2S_PLAYER_CHALLENGE_REQUEST_2.copy()).sync();
+                channel.writeAndFlush(Packets.A2S_PLAYER_CHALLENGE_REQUEST_2.copy());
                 try {
                     sleep(Configuration.UPDATE_RATE);
                 } catch (InterruptedException e) {

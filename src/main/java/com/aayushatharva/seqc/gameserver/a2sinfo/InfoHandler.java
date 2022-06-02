@@ -59,9 +59,7 @@ final class InfoHandler extends SimpleChannelInboundHandler<DatagramPacket> {
         // 2. If we receive A2S INFO without challenge then store it into cache directly.
         try (Buffer buffer = msg.content().copy()) {
             if (Statics.equals(Packets.A2S_INFO_RESPONSE_HEADER, buffer.readSplit(Packets.A2S_INFO_RESPONSE_HEADER_LEN))) {
-                long s = System.nanoTime();
                 Handler.INSTANCE.receiveA2sInfo(Collections.singletonList(msg.content().copy()));
-                System.out.println(System.nanoTime() - s);
                 logger.debug("New A2S_INFO Update Cached Successfully");
                 return;
             }
