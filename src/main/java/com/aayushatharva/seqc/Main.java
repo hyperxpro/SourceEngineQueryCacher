@@ -68,12 +68,11 @@ public final class Main {
             if (Configuration.TRANSPORT.equalsIgnoreCase("epoll")) {
                 if (Epoll.isAvailable()) {
                     logger.info("Using Epoll Transport");
+                    ioHandlerFactory = EpollHandler.newFactory();
                 } else {
                     logger.error("Epoll Transport is not available");
                     System.exit(1);
                 }
-
-                ioHandlerFactory = EpollHandler.newFactory();
             } else if (Configuration.TRANSPORT.equalsIgnoreCase("nio")) {
                 logger.info("Using Nio Transport");
                 ioHandlerFactory = NioHandler.newFactory();

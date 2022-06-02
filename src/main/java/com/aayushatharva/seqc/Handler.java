@@ -21,6 +21,7 @@ import com.aayushatharva.seqc.utils.Cache;
 import com.aayushatharva.seqc.utils.Configuration;
 import io.netty5.buffer.BufferUtil;
 import io.netty5.buffer.api.Buffer;
+import io.netty5.buffer.api.BufferClosedException;
 import io.netty5.buffer.api.Resource;
 import io.netty5.buffer.api.Send;
 import io.netty5.buffer.api.internal.Statics;
@@ -76,15 +77,6 @@ public final class Handler extends SimpleChannelInboundHandler<DatagramPacket> {
 
             if (Configuration.STATS_BPS)
                 Stats.BPS.addAndGet(pckLength);
-
-            /*
-             * If A2S_INFO or A2S_PLAYER is not readable or If A2S_RULE is enabled but not readable,
-             * drop request because we've nothing to reply.
-             */
-            if (A2S_INFO.size() == 0 || (Configuration.ENABLE_A2S_RULE && A2S_PLAYER.size() == 0) || (Configuration.ENABLE_A2S_RULE && A2S_RULES.size() == 0)) {
-                logger.error("Dropping Request, Cache is not ready. A2S_INFO: {}, A2S_PLAYER: {}, A2S_RULES: {}", A2S_INFO, A2S_PLAYER, A2S_RULES);
-                return;
-            }
 
             /*
              * Packet size of 25, 29 bytes and 9 bytes only will be processed rest will be dropped.
@@ -176,24 +168,24 @@ public final class Handler extends SimpleChannelInboundHandler<DatagramPacket> {
         // If 'direct' is 'true' then we will short-circuit and send A2S_INFO directly without challenge code validation.
         // If not then we will validate IP address and challenge code and upon successful validation, we will send A2S_INFO packet.
         if (direct || isIPValid(datagramPacket.sender(), datagramPacket, "A2S_INFO")) {
-            for (Buffer buffer : A2S_INFO) {
-                ctx.writeAndFlush(new DatagramPacket(buffer.copy(), datagramPacket.sender()));
+            for (int i = 0; i < A2S_INFO.size(); i++) {
+                ctx.writeAndFlush(new DatagramPacket(A2S_INFO.get(i).copy(), datagramPacket.sender()));
             }
         }
     }
 
     private void sendA2SPlayerResponse(ChannelHandlerContext ctx, DatagramPacket datagramPacket) {
         if (isIPValid(datagramPacket.sender(), datagramPacket, "A2S_PLAYER")) {
-            for (Buffer buffer : A2S_PLAYER) {
-                ctx.writeAndFlush(new DatagramPacket(buffer.copy(), datagramPacket.sender()));
+            for (int i = 0; i < A2S_PLAYER.size(); i++) {
+                ctx.writeAndFlush(new DatagramPacket(A2S_PLAYER.get(i).copy(), datagramPacket.sender()));
             }
         }
     }
 
     private void sendA2SRulesResponse(ChannelHandlerContext ctx, DatagramPacket datagramPacket) {
         if (isIPValid(datagramPacket.sender(), datagramPacket, "A2S_RULES")) {
-            for (Buffer buffer : A2S_RULES) {
-                ctx.writeAndFlush(new DatagramPacket(buffer.copy(), datagramPacket.sender()));
+            for (int i = 0; i < A2S_RULES.size(); i++) {
+                ctx.writeAndFlush(new DatagramPacket(A2S_RULES.get(i).copy(), datagramPacket.sender()));
             }
         }
     }
@@ -251,6 +243,10 @@ public final class Handler extends SimpleChannelInboundHandler<DatagramPacket> {
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
+        if (cause instanceof BufferClosedException) {
+            // Ignore
+            return;
+        }
         logger.error("Caught Error", cause);
     }
 
