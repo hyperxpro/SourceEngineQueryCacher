@@ -23,9 +23,11 @@ import com.aayushatharva.seqc.utils.ExtraBufferUtil;
 import com.aayushatharva.seqc.utils.Packets;
 import io.netty5.buffer.BufferUtil;
 import io.netty5.buffer.api.Buffer;
+import io.netty5.buffer.api.Send;
 import io.netty5.channel.ChannelHandlerContext;
 import io.netty5.channel.SimpleChannelInboundHandler;
 import io.netty5.channel.socket.DatagramPacket;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -43,7 +45,7 @@ import static com.aayushatharva.seqc.utils.Packets.SPLIT_PACKET_HEADER;
 final class RulesHandler extends SimpleChannelInboundHandler<DatagramPacket> {
 
     private static final Logger logger = LogManager.getLogger(RulesHandler.class);
-    private static final List<Buffer> BUFFER_LIST = new ArrayList<>();
+    private static final List<Buffer> BUFFER_LIST = new ObjectArrayList<>();
 
     RulesHandler() {
         super(false);
@@ -67,7 +69,7 @@ final class RulesHandler extends SimpleChannelInboundHandler<DatagramPacket> {
 
             // 2. If we receive A2S RULE without challenge then store it into cache directly.
             if (ExtraBufferUtil.contains(A2S_RULES_RESPONSE_HEADER, buffer)) {
-                Handler.INSTANCE.receiveA2sRule(Collections.singletonList(msg.content()));
+                Handler.INSTANCE.receiveA2sRule(Collections.singletonList(msg.content().send()));
 
                 logger.debug("New A2S_RULE Update Cached Successfully");
                 release = false;
@@ -92,10 +94,14 @@ final class RulesHandler extends SimpleChannelInboundHandler<DatagramPacket> {
     }
 
     @Override
-    public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
+    public void userEventTriggered(ChannelHandlerContext ctx, Object evt) {
         if (evt instanceof SplitPacketDecoder.SplitPacketsReceivedEvent) {
             if (!BUFFER_LIST.isEmpty()) {
-                Handler.INSTANCE.receiveA2sRule(BUFFER_LIST);
+                List<Send<Buffer>> sends = new ArrayList<>();
+                for (Buffer buffer : BUFFER_LIST) {
+                    sends.add(buffer.send());
+                }
+                Handler.INSTANCE.receiveA2sRule(sends);
                 BUFFER_LIST.clear();
             }
         }

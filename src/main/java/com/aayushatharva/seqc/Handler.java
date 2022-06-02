@@ -22,6 +22,7 @@ import com.aayushatharva.seqc.utils.Configuration;
 import com.aayushatharva.seqc.utils.ExtraBufferUtil;
 import io.netty5.buffer.BufferUtil;
 import io.netty5.buffer.api.Buffer;
+import io.netty5.buffer.api.Send;
 import io.netty5.channel.ChannelHandler;
 import io.netty5.channel.ChannelHandlerContext;
 import io.netty5.channel.SimpleChannelInboundHandler;
@@ -222,28 +223,28 @@ public final class Handler extends SimpleChannelInboundHandler<DatagramPacket> {
         }
     }
 
-    public synchronized void receiveA2sInfo(List<Buffer> buffers) {
+    public synchronized void receiveA2sInfo(List<Send<Buffer>> buffers) {
         for (int i = 0; i < A2S_INFO.size(); i++) {
             A2S_INFO.get(i).close();
         }
         A2S_INFO.clear();
-        A2S_INFO.addAll(buffers);
+        buffers.forEach(bufferSend -> A2S_INFO.add(bufferSend.receive()));
     }
 
-    public synchronized void receiveA2sPlayer(List<Buffer> buffers) {
+    public synchronized void receiveA2sPlayer(List<Send<Buffer>> buffers) {
         for (int i = 0; i < A2S_PLAYER.size(); i++) {
             A2S_PLAYER.get(i).close();
         }
         A2S_PLAYER.clear();
-        A2S_PLAYER.addAll(buffers);
+        buffers.forEach(bufferSend -> A2S_PLAYER.add(bufferSend.receive()));
     }
 
-    public synchronized void receiveA2sRule(List<Buffer> buffers) {
+    public synchronized void receiveA2sRule(List<Send<Buffer>> buffers) {
         for (int i = 0; i < A2S_RULES.size(); i++) {
             A2S_RULES.get(i).close();
         }
         A2S_RULES.clear();
-        A2S_RULES.addAll(buffers);
+        buffers.forEach(bufferSend -> A2S_RULES.add(bufferSend.receive()));
     }
 
     @Override

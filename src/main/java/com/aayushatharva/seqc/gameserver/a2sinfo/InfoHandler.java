@@ -22,6 +22,7 @@ import com.aayushatharva.seqc.gameserver.SplitPacketDecoder;
 import com.aayushatharva.seqc.utils.ExtraBufferUtil;
 import io.netty5.buffer.BufferUtil;
 import io.netty5.buffer.api.Buffer;
+import io.netty5.buffer.api.Send;
 import io.netty5.channel.ChannelHandlerContext;
 import io.netty5.channel.SimpleChannelInboundHandler;
 import io.netty5.channel.socket.DatagramPacket;
@@ -29,6 +30,7 @@ import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -67,7 +69,7 @@ final class InfoHandler extends SimpleChannelInboundHandler<DatagramPacket> {
 
             // 2. If we receive A2S INFO without challenge then store it into cache directly.
             if (ExtraBufferUtil.contains(A2S_INFO_RESPONSE_HEADER, buffer)) {
-                Handler.INSTANCE.receiveA2sInfo(Collections.singletonList(buffer));
+                Handler.INSTANCE.receiveA2sInfo(Collections.singletonList(buffer.send()));
 
                 logger.debug("New A2S_INFO Update Cached Successfully");
                 release = false;
@@ -95,14 +97,13 @@ final class InfoHandler extends SimpleChannelInboundHandler<DatagramPacket> {
     public void userEventTriggered(ChannelHandlerContext ctx, Object evt) {
         if (evt instanceof SplitPacketDecoder.SplitPacketsReceivedEvent) {
             if (!BUFFER_LIST.isEmpty()) {
-                Handler.INSTANCE.receiveA2sInfo(BUFFER_LIST);
+                List<Send<Buffer>> sends = new ArrayList<>();
+                for (Buffer buffer : BUFFER_LIST) {
+                    sends.add(buffer.send());
+                }
+                Handler.INSTANCE.receiveA2sInfo(sends);
                 BUFFER_LIST.clear();
             }
         }
-    }
-
-    @Override
-    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-        System.out.println(cause);
     }
 }
