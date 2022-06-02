@@ -19,10 +19,9 @@ package com.aayushatharva.seqc;
 
 import com.aayushatharva.seqc.utils.Cache;
 import com.aayushatharva.seqc.utils.Configuration;
+import com.aayushatharva.seqc.utils.ExtraBufferUtil;
 import io.netty5.buffer.BufferUtil;
 import io.netty5.buffer.api.Buffer;
-import io.netty5.buffer.api.BufferClosedException;
-import io.netty5.buffer.api.internal.Statics;
 import io.netty5.channel.ChannelHandler;
 import io.netty5.channel.ChannelHandlerContext;
 import io.netty5.channel.SimpleChannelInboundHandler;
@@ -42,11 +41,9 @@ import static com.aayushatharva.seqc.utils.Packets.A2S_INFO_REQUEST_LEN;
 import static com.aayushatharva.seqc.utils.Packets.A2S_PLAYER_CHALLENGE_REQUEST_1;
 import static com.aayushatharva.seqc.utils.Packets.A2S_PLAYER_CHALLENGE_REQUEST_2;
 import static com.aayushatharva.seqc.utils.Packets.A2S_PLAYER_REQUEST_HEADER;
-import static com.aayushatharva.seqc.utils.Packets.A2S_PLAYER_REQUEST_HEADER_LEN;
 import static com.aayushatharva.seqc.utils.Packets.A2S_RULES_CHALLENGE_REQUEST_1;
 import static com.aayushatharva.seqc.utils.Packets.A2S_RULES_CHALLENGE_REQUEST_2;
 import static com.aayushatharva.seqc.utils.Packets.A2S_RULES_REQUEST_HEADER;
-import static com.aayushatharva.seqc.utils.Packets.A2S_RULES_REQUEST_HEADER_LEN;
 import static com.aayushatharva.seqc.utils.Packets.LEN_CODE;
 
 @ChannelHandler.Sharable
@@ -67,85 +64,77 @@ public final class Handler extends SimpleChannelInboundHandler<DatagramPacket> {
     public final List<Buffer> A2S_RULES = new ObjectArrayList<>();
 
     protected void messageReceived(ChannelHandlerContext ctx, DatagramPacket packet) {
-        try (Buffer buffer = packet.content().copy().makeReadOnly()) {
-            int pckLength = packet.content().readableBytes();
+        Buffer buffer = packet.content();
+        int pckLength = packet.content().readableBytes();
 
-            if (Configuration.STATS_PPS)
-                Stats.PPS.incrementAndGet();
+        if (Configuration.STATS_PPS)
+            Stats.PPS.incrementAndGet();
 
-            if (Configuration.STATS_BPS)
-                Stats.BPS.addAndGet(pckLength);
+        if (Configuration.STATS_BPS)
+            Stats.BPS.addAndGet(pckLength);
 
-            /*
-             * Packet size of 25, 29 bytes and 9 bytes only will be processed rest will be dropped.
-             *
-             * A2S_INFO = 25 Bytes, 29 bytes with padded challenge code
-             * A2S_Player = 9 Bytes
-             * A2S_RULES = 9 Bytes
-             */
-            if (pckLength == 9 || pckLength == 25 || pckLength == 29) {
+        /*
+         * Packet size of 25, 29 bytes and 9 bytes only will be processed rest will be dropped.
+         *
+         * A2S_INFO = 25 Bytes, 29 bytes with padded challenge code
+         * A2S_Player = 9 Bytes
+         * A2S_RULES = 9 Bytes
+         */
+        if (pckLength == 9 || pckLength == 25 || pckLength == 29) {
 
-                if ((pckLength == 25 || pckLength == 29) && Statics.equals(A2S_INFO_REQUEST, buffer.split(A2S_INFO_REQUEST_LEN))) {
-                    /*
-                     * 1. Packet equals to `A2S_INFO_REQUEST` with length==25 (A2S_INFO without challenge code)
-                     * then we'll check if A2SInfoChallenge is enabled or not. If it's enabled then
-                     *  we'll send response of A2S_Challenge Packet, otherwise we'll send A2S_INFO Packet.
-                     *
-                     * 2. Validate A2S_INFO Challenge Response (length==29) and send A2S_INFO Packet.
-                     */
-                    if (pckLength == A2S_INFO_REQUEST_LEN) {
-                        if (Configuration.ENABLE_A2S_INFO_CHALLENGE) {
-                            sendA2SChallenge(ctx, packet);
-                        } else {
-                            sendA2SInfoResponse(ctx, packet, true);
-                        }
+            if ((pckLength == 25 || pckLength == 29) && ExtraBufferUtil.contains(A2S_INFO_REQUEST, buffer)) {
+                /*
+                 * 1. Packet equals to `A2S_INFO_REQUEST` with length==25 (A2S_INFO without challenge code)
+                 * then we'll check if A2SInfoChallenge is enabled or not. If it's enabled then
+                 *  we'll send response of A2S_Challenge Packet, otherwise we'll send A2S_INFO Packet.
+                 *
+                 * 2. Validate A2S_INFO Challenge Response (length==29) and send A2S_INFO Packet.
+                 */
+                if (pckLength == A2S_INFO_REQUEST_LEN) {
+                    if (Configuration.ENABLE_A2S_INFO_CHALLENGE) {
+                        sendA2SChallenge(ctx, packet);
                     } else {
-                        sendA2SInfoResponse(ctx, packet, false);
+                        sendA2SInfoResponse(ctx, packet, true);
                     }
-                    return;
+                } else {
+                    sendA2SInfoResponse(ctx, packet, false);
                 }
-                buffer.resetOffsets();
-
-                if (Configuration.ENABLE_A2S_PLAYER && Statics.equals(A2S_PLAYER_REQUEST_HEADER, buffer.split(A2S_PLAYER_REQUEST_HEADER_LEN))) {
-                    try (Buffer buffer1 = packet.content().copy(); Buffer buffer2 = packet.content().copy()) {
-                        /*
-                         * 1. Packet equals to `A2S_PLAYER_CHALLENGE_REQUEST_1` or `A2S_PLAYER_CHALLENGE_REQUEST_2`
-                         * then we'll send response of A2S_Player Challenge Packet.
-                         */
-                        if (Statics.equals(buffer1, A2S_PLAYER_CHALLENGE_REQUEST_2) || Statics.equals(buffer2, A2S_PLAYER_CHALLENGE_REQUEST_1)) {
-                            sendA2SChallenge(ctx, packet);
-                        } else {
-                            // 2. Validate A2S_Player Challenge Response and send A2S_Player Packet.
-                            sendA2SPlayerResponse(ctx, packet);
-                        }
-                        return;
-                    }
-                }
-                buffer.resetOffsets();
-
-                if (Configuration.ENABLE_A2S_RULE && Statics.equals(A2S_RULES_REQUEST_HEADER, buffer.split(A2S_RULES_REQUEST_HEADER_LEN))) {
-
-                    try (Buffer buffer1 = packet.content().copy(); Buffer buffer2 = packet.content().copy()) {
-                        /*
-                         * 1. Packet equals `A2S_RULES_CHALLENGE_REQUEST_1` or `A2S_RULES_CHALLENGE_REQUEST_2`
-                         * then we'll send response of A2S_Challenge Packet.
-                         */
-                        if (Statics.equals(buffer1, A2S_RULES_CHALLENGE_REQUEST_2) || Statics.equals(buffer2, A2S_RULES_CHALLENGE_REQUEST_1)) {
-                            sendA2SChallenge(ctx, packet);
-                        } else {
-                            // 2. Validate A2S_RULES Challenge Response and send A2S_Rules Packet.
-                            sendA2SRulesResponse(ctx, packet);
-                        }
-                    }
-                    return;
-                }
+                return;
             }
 
-            if (IS_LOGGER_DEBUG_ENABLED) {
-                logger.debug("Dropping Packet of Length {} bytes from {}:{} ----- {}", pckLength,
-                        packet.sender().getAddress().getHostAddress(), packet.sender().getPort(),
-                        BufferUtil.hexDump(packet.content()));
+            if (Configuration.ENABLE_A2S_PLAYER && ExtraBufferUtil.contains(A2S_PLAYER_REQUEST_HEADER, buffer)) {
+                /*
+                 * 1. Packet equals to `A2S_PLAYER_CHALLENGE_REQUEST_1` or `A2S_PLAYER_CHALLENGE_REQUEST_2`
+                 * then we'll send response of A2S_Player Challenge Packet.
+                 */
+                if (ExtraBufferUtil.contains(A2S_PLAYER_CHALLENGE_REQUEST_1, buffer) || ExtraBufferUtil.contains(A2S_PLAYER_CHALLENGE_REQUEST_2, buffer)) {
+                    sendA2SChallenge(ctx, packet);
+                } else {
+                    // 2. Validate A2S_Player Challenge Response and send A2S_Player Packet.
+                    sendA2SPlayerResponse(ctx, packet);
+                }
+                return;
             }
+
+            if (Configuration.ENABLE_A2S_RULE && ExtraBufferUtil.contains(A2S_RULES_REQUEST_HEADER, buffer)) {
+                /*
+                 * 1. Packet equals `A2S_RULES_CHALLENGE_REQUEST_1` or `A2S_RULES_CHALLENGE_REQUEST_2`
+                 * then we'll send response of A2S_Challenge Packet.
+                 */
+                if (ExtraBufferUtil.contains(A2S_RULES_CHALLENGE_REQUEST_1, buffer) || ExtraBufferUtil.contains(A2S_RULES_CHALLENGE_REQUEST_2, buffer)) {
+                    sendA2SChallenge(ctx, packet);
+                } else {
+                    // 2. Validate A2S_RULES Challenge Response and send A2S_Rules Packet.
+                    sendA2SRulesResponse(ctx, packet);
+                }
+                return;
+            }
+        }
+
+        if (IS_LOGGER_DEBUG_ENABLED) {
+            logger.debug("Dropping Packet of Length {} bytes from {}:{} ----- {}", pckLength,
+                    packet.sender().getAddress().getHostAddress(), packet.sender().getPort(),
+                    BufferUtil.hexDump(buffer));
         }
     }
 

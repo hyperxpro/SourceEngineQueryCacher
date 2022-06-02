@@ -19,60 +19,76 @@ package com.aayushatharva.seqc.gameserver.a2splayer;
 
 import com.aayushatharva.seqc.Handler;
 import com.aayushatharva.seqc.gameserver.SplitPacketDecoder;
-import com.aayushatharva.seqc.utils.Packets;
+import com.aayushatharva.seqc.utils.ExtraBufferUtil;
 import io.netty5.buffer.BufferUtil;
 import io.netty5.buffer.api.Buffer;
-import io.netty5.buffer.api.internal.Statics;
 import io.netty5.channel.ChannelHandlerContext;
 import io.netty5.channel.SimpleChannelInboundHandler;
 import io.netty5.channel.socket.DatagramPacket;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+
+import static com.aayushatharva.seqc.utils.Packets.A2S_CHALLENGE_RESPONSE_HEADER;
+import static com.aayushatharva.seqc.utils.Packets.A2S_CHALLENGE_RESPONSE_HEADER_LEN;
+import static com.aayushatharva.seqc.utils.Packets.A2S_PLAYER_REQUEST_HEADER;
+import static com.aayushatharva.seqc.utils.Packets.A2S_PLAYER_REQUEST_HEADER_LEN;
+import static com.aayushatharva.seqc.utils.Packets.A2S_PLAYER_RESPONSE_HEADER;
+import static com.aayushatharva.seqc.utils.Packets.LEN_CODE;
+import static com.aayushatharva.seqc.utils.Packets.SPLIT_PACKET_HEADER;
 
 final class PlayerHandler extends SimpleChannelInboundHandler<DatagramPacket> {
 
     private static final Logger logger = LogManager.getLogger(PlayerHandler.class);
-    private static final List<Buffer> BUFFER_LIST = new ArrayList<>();
+    private static final List<Buffer> BUFFER_LIST = new ObjectArrayList<>();
+
+    PlayerHandler() {
+        super(false);
+    }
 
     @Override
     protected void messageReceived(ChannelHandlerContext ctx, DatagramPacket msg) {
-        // 1. If we receive A2S PLAYER Challenge then respond back to server with Challenge Code
-        try (Buffer buffer = msg.content().copy()) {
-            if (Statics.equals(Packets.A2S_CHALLENGE_RESPONSE_HEADER, buffer.readSplit(Packets.A2S_CHALLENGE_RESPONSE_HEADER_LEN))) {
-                Buffer response = ctx.bufferAllocator().allocate(Packets.A2S_PLAYER_REQUEST_HEADER_LEN + Packets.LEN_CODE)
-                        .writeBytes(Packets.A2S_PLAYER_REQUEST_HEADER.copy())
-                        .writeBytes(buffer.readSplit(Packets.LEN_CODE));
+        boolean release = true;
+        try {
+            Buffer buffer = msg.content();
+
+            // 1. If we receive A2S PLAYER Challenge then respond back to server with Challenge Code
+            if (ExtraBufferUtil.contains(A2S_CHALLENGE_RESPONSE_HEADER, buffer)) {
+                Buffer response = ctx.bufferAllocator().allocate(A2S_PLAYER_REQUEST_HEADER_LEN + LEN_CODE)
+                        .writeBytes(A2S_PLAYER_REQUEST_HEADER.copy())
+                        .writeBytes(buffer.skipReadable(A2S_CHALLENGE_RESPONSE_HEADER_LEN));
 
                 ctx.writeAndFlush(response);
                 return;
             }
-        }
 
-        // 2. If we receive A2S PLAYER without challenge then store it into cache directly.
-        try (Buffer buffer = msg.content().copy()) {
-            if (Statics.equals(Packets.A2S_PLAYER_RESPONSE_HEADER, buffer.readSplit(Packets.A2S_PLAYER_RESPONSE_HEADER.readableBytes()))) {
-                Handler.INSTANCE.receiveA2sPlayer(Collections.singletonList(msg.content().copy()));
+            // 2. If we receive A2S PLAYER without challenge then store it into cache directly.
+            if (ExtraBufferUtil.contains(A2S_PLAYER_RESPONSE_HEADER, buffer)) {
+                Handler.INSTANCE.receiveA2sPlayer(Collections.singletonList(msg.content()));
 
                 logger.debug("New A2S_PLAYER Update Cached Successfully");
+                release = false;
                 return;
             }
-        }
 
-        // 3. If we receive Split Packet then we will store it into Buffer List
-        try (Buffer buffer = msg.content().copy()) {
-            if (Statics.equals(Packets.SPLIT_PACKET_HEADER, buffer.readSplit(Packets.SPLIT_PACKET_LEN))) {
-                BUFFER_LIST.add(msg.content().copy());
+            // 3. If we receive Split Packet then we will store it into Buffer List
+            if (ExtraBufferUtil.contains(SPLIT_PACKET_HEADER, buffer)) {
+                BUFFER_LIST.add(msg.content());
 
                 logger.debug("Received Split A2S_PLAYER Packet, Current List Size: {}", BUFFER_LIST.size());
+                release = false;
                 return;
             }
+
+            logger.error("Received unsupported A2S_PLAYER Response from Game Server: {}", BufferUtil.hexDump(buffer).toUpperCase());
+        } finally {
+            if (release) {
+                msg.close();
+            }
         }
-        msg.close();
-        logger.error("Received unsupported A2S_PLAYER Response from Game Server: {}", BufferUtil.hexDump(msg.content()).toUpperCase());
     }
 
     @Override
@@ -83,5 +99,10 @@ final class PlayerHandler extends SimpleChannelInboundHandler<DatagramPacket> {
                 BUFFER_LIST.clear();
             }
         }
+    }
+
+    @Override
+    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+        System.out.println(cause);
     }
 }

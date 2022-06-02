@@ -19,10 +19,9 @@ package com.aayushatharva.seqc.gameserver.a2sinfo;
 
 import com.aayushatharva.seqc.Handler;
 import com.aayushatharva.seqc.gameserver.SplitPacketDecoder;
-import com.aayushatharva.seqc.utils.Packets;
+import com.aayushatharva.seqc.utils.ExtraBufferUtil;
 import io.netty5.buffer.BufferUtil;
 import io.netty5.buffer.api.Buffer;
-import io.netty5.buffer.api.internal.Statics;
 import io.netty5.channel.ChannelHandlerContext;
 import io.netty5.channel.SimpleChannelInboundHandler;
 import io.netty5.channel.socket.DatagramPacket;
@@ -32,6 +31,14 @@ import org.apache.logging.log4j.Logger;
 
 import java.util.Collections;
 import java.util.List;
+
+import static com.aayushatharva.seqc.utils.Packets.A2S_CHALLENGE_RESPONSE_HEADER;
+import static com.aayushatharva.seqc.utils.Packets.A2S_CHALLENGE_RESPONSE_HEADER_LEN;
+import static com.aayushatharva.seqc.utils.Packets.A2S_INFO_REQUEST;
+import static com.aayushatharva.seqc.utils.Packets.A2S_INFO_REQUEST_LEN;
+import static com.aayushatharva.seqc.utils.Packets.A2S_INFO_RESPONSE_HEADER;
+import static com.aayushatharva.seqc.utils.Packets.LEN_CODE;
+import static com.aayushatharva.seqc.utils.Packets.SPLIT_PACKET_HEADER;
 
 final class InfoHandler extends SimpleChannelInboundHandler<DatagramPacket> {
 
@@ -44,38 +51,44 @@ final class InfoHandler extends SimpleChannelInboundHandler<DatagramPacket> {
 
     @Override
     protected void messageReceived(ChannelHandlerContext ctx, DatagramPacket msg) {
-        // 1. If we receive A2S INFO Challenge then respond back to server with Challenge Code
-        try (Buffer buffer = msg.content().copy()) {
-            if (Statics.equals(Packets.A2S_CHALLENGE_RESPONSE_HEADER, buffer.readSplit(Packets.A2S_CHALLENGE_RESPONSE_HEADER_LEN))) {
-                Buffer response = ctx.bufferAllocator().allocate(Packets.A2S_INFO_REQUEST_LEN + Packets.LEN_CODE)
-                        .writeBytes(Packets.A2S_INFO_REQUEST.copy())
-                        .writeBytes(buffer.readSplit(Packets.LEN_CODE));
+        boolean release = true;
+        try {
+            Buffer buffer = msg.content();
+
+            // 1. If we receive A2S INFO Challenge then respond back to server with Challenge Code
+            if (ExtraBufferUtil.contains(A2S_CHALLENGE_RESPONSE_HEADER, buffer)) {
+                Buffer response = ctx.bufferAllocator().allocate(A2S_INFO_REQUEST_LEN + LEN_CODE)
+                        .writeBytes(A2S_INFO_REQUEST.copy())
+                        .writeBytes(buffer.skipReadable(A2S_CHALLENGE_RESPONSE_HEADER_LEN));
 
                 ctx.writeAndFlush(response);
                 return;
             }
-        }
 
-        // 2. If we receive A2S INFO without challenge then store it into cache directly.
-        try (Buffer buffer = msg.content().copy()) {
-            if (Statics.equals(Packets.A2S_INFO_RESPONSE_HEADER, buffer.readSplit(Packets.A2S_INFO_RESPONSE_HEADER_LEN))) {
-                Handler.INSTANCE.receiveA2sInfo(Collections.singletonList(msg.content().copy()));
+            // 2. If we receive A2S INFO without challenge then store it into cache directly.
+            if (ExtraBufferUtil.contains(A2S_INFO_RESPONSE_HEADER, buffer)) {
+                Handler.INSTANCE.receiveA2sInfo(Collections.singletonList(buffer));
+
                 logger.debug("New A2S_INFO Update Cached Successfully");
+                release = false;
                 return;
             }
-        }
 
-        // 3. If we receive Split Packet then we will store it into Buffer List
-        try (Buffer buffer = msg.content().copy()) {
-            if (Statics.equals(Packets.SPLIT_PACKET_HEADER, buffer.readSplit(Packets.SPLIT_PACKET_LEN))) {
-                BUFFER_LIST.add(msg.content().copy());
+            // 3. If we receive Split Packet then we will store it into Buffer List
+            if (ExtraBufferUtil.contains(SPLIT_PACKET_HEADER, buffer)) {
+                BUFFER_LIST.add(buffer);
 
                 logger.debug("Received Split A2S_INFO Packet, Current List Size: {}", BUFFER_LIST.size());
+                release = false;
                 return;
             }
+
+            logger.error("Received unsupported A2S_INFO Response from Game Server: {}", BufferUtil.hexDump(buffer).toUpperCase());
+        } finally {
+            if (release) {
+                msg.close();
+            }
         }
-        msg.close();
-        logger.error("Received unsupported A2S_INFO Response from Game Server: {}", BufferUtil.hexDump(msg.content()).toUpperCase());
     }
 
     @Override
@@ -86,5 +99,10 @@ final class InfoHandler extends SimpleChannelInboundHandler<DatagramPacket> {
                 BUFFER_LIST.clear();
             }
         }
+    }
+
+    @Override
+    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+        System.out.println(cause);
     }
 }
