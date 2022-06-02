@@ -23,12 +23,12 @@ import io.netty5.buffer.api.internal.Statics;
 import io.netty5.channel.ChannelHandlerContext;
 import io.netty5.channel.socket.DatagramPacket;
 import io.netty5.handler.codec.MessageToMessageDecoder;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public final class SplitPacketDecoder extends MessageToMessageDecoder<DatagramPacket> {
-    private final List<Buffer> BUFFER_LIST = new ArrayList<>();
+    private final List<Buffer> BUFFER_LIST = new ObjectArrayList<>();
 
     @Override
     protected void decode(ChannelHandlerContext ctx, DatagramPacket msg) {

@@ -29,6 +29,7 @@ import io.netty5.channel.ChannelHandler;
 import io.netty5.channel.ChannelHandlerContext;
 import io.netty5.channel.SimpleChannelInboundHandler;
 import io.netty5.channel.socket.DatagramPacket;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -60,13 +61,13 @@ public final class Handler extends SimpleChannelInboundHandler<DatagramPacket> {
     private static final boolean IS_LOGGER_DEBUG_ENABLED = logger.isDebugEnabled();
 
     // Buffer for `A2S_INFO` Packet
-    public final List<Buffer> A2S_INFO = new CopyOnWriteArrayList<>();
+    public final List<Buffer> A2S_INFO = new ObjectArrayList<>();
 
     // Buffer for `A2S_PLAYER` Packet
-    public final List<Buffer> A2S_PLAYER = new CopyOnWriteArrayList<>();
+    public final List<Buffer> A2S_PLAYER = new ObjectArrayList<>();
 
     // Buffer for `A2S_RULES` Packet
-    public final List<Buffer> A2S_RULES = new CopyOnWriteArrayList<>();
+    public final List<Buffer> A2S_RULES = new ObjectArrayList<>();
 
     protected void messageReceived(ChannelHandlerContext ctx, DatagramPacket packet) {
         try (Buffer buffer = packet.content().copy().makeReadOnly()) {
@@ -223,22 +224,22 @@ public final class Handler extends SimpleChannelInboundHandler<DatagramPacket> {
         }
     }
 
-    public void receiveA2sInfo(List<Send<Buffer>> buffers) {
+    public void receiveA2sInfo(List<Buffer> buffers) {
         A2S_INFO.forEach(Resource::close);
         A2S_INFO.clear();
-        buffers.forEach(bufferSend -> A2S_INFO.add(bufferSend.receive()));
+        A2S_INFO.addAll(buffers);
     }
 
-    public void receiveA2sPlayer(List<Send<Buffer>> buffers) {
+    public void receiveA2sPlayer(List<Buffer> buffers) {
         A2S_PLAYER.forEach(Resource::close);
         A2S_PLAYER.clear();
-        buffers.forEach(bufferSend -> A2S_PLAYER.add(bufferSend.receive()));
+        A2S_PLAYER.addAll(buffers);
     }
 
-    public void receiveA2sRule(List<Send<Buffer>> buffers) {
+    public void receiveA2sRule(List<Buffer> buffers) {
         A2S_RULES.forEach(Resource::close);
         A2S_RULES.clear();
-        buffers.forEach(bufferSend -> A2S_RULES.add(bufferSend.receive()));
+        A2S_RULES.addAll(buffers);
     }
 
     @Override
