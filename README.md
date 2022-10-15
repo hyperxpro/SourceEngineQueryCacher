@@ -1,4 +1,5 @@
 # Source Engine Query Cacher
+# `SourceEngineQueryCacher` has reached the end of its life.
 ![Downloads](
 https://img.shields.io/github/downloads/hyperxpro/SourceEngineQueryCacher/total)
 
