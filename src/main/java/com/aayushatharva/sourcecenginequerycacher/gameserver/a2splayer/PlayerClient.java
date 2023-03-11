@@ -8,6 +8,7 @@ import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.AdaptiveRecvByteBufAllocator;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelOption;
+import io.netty.channel.FixedRecvByteBufAllocator;
 import io.netty.channel.epoll.EpollDatagramChannel;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -27,18 +28,18 @@ public final class PlayerClient extends Thread {
         try {
 
             Bootstrap bootstrap = new Bootstrap()
-                    .group(Main.eventLoopGroup)
+                    .group(Main.EventLoopGroup)
                     .channelFactory(EpollDatagramChannel::new)
-                    .option(ChannelOption.ALLOCATOR, Main.BYTE_BUF_ALLOCATOR)
+                    .option(ChannelOption.ALLOCATOR, Main.ALLOCATOR)
                     .option(ChannelOption.SO_SNDBUF, Config.SendBufferSize)
                     .option(ChannelOption.SO_RCVBUF, Config.ReceiveBufferSize)
-                    .option(ChannelOption.RCVBUF_ALLOCATOR, new AdaptiveRecvByteBufAllocator())
+                    .option(ChannelOption.RCVBUF_ALLOCATOR, new FixedRecvByteBufAllocator(256))
                     .handler(new PlayerHandler());
 
             Channel channel = bootstrap.connect(Config.GameServer).sync().channel();
 
             while (keepRunning) {
-                channel.writeAndFlush(Packets.A2S_PLAYER_CHALLENGE_REQUEST_2.retainedDuplicate()).sync();
+                channel.writeAndFlush(Packets.A2S_PLAYER_CHALLENGE_REQUEST_2).sync();
                 sleep(Config.GameUpdateInterval);
             }
 

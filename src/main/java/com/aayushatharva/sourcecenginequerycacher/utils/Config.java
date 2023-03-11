@@ -52,6 +52,10 @@ public final class Config {
     public static boolean Stats_PPS = false;
     public static boolean Stats_bPS = false;
 
+    // Extra
+    public static boolean UDP_GRO = false;
+    public static boolean A2S_RULE = false;
+
     static {
         options = new Options()
                 /*General Configuration*/
@@ -60,7 +64,6 @@ public final class Config {
                 .addOption("w", "threads", true, "Number of Threads")
                 .addOption("p", "ppsStats", false, "Enable Packets per Second Stats")
                 .addOption("b", "bpsStats", false, "Enable Bits per Second Stats")
-
 
                 .addOption("gameUpdateRate", true, "Game Server Update rate in Milliseconds")
                 .addOption("gameUpdateTimeout", true, "Game Server Update Socket Timeout in Milliseconds")
@@ -77,7 +80,10 @@ public final class Config {
                 /* Buffers */
                 .addOption("r", "receiveBuf", true, "Server Receive Buffer Size")
                 .addOption("s", "sendBuf", true, "Server Send Buffer Size")
-                .addOption("a", "receiveAllocatorBuf", true, "Fixed Receive ByteBuf Allocator Buffer Size");
+
+                /* Extra */
+                .addOption("udpGro", false, "Enable UDP GRO (Generic Receive Offload)")
+                .addOption("a2sRule", false, "Enable A2S_RULE Caching");
     }
 
     public static void setup(String[] args) throws ParseException, IOException {
@@ -154,36 +160,48 @@ public final class Config {
             if (cmd.getOptionValue("sendBuf") != null) {
                 SendBufferSize = Integer.parseInt(cmd.getOptionValue("sendBuf"));
             }
+
+            // Extra
+            if (cmd.hasOption("udpGro")) {
+                UDP_GRO = true;
+            }
+
+            if (cmd.hasOption("a2sRule")) {
+                A2S_RULE = true;
+            }
         }
 
         displayConfig();
     }
 
     private static void parseConfigFile(String path) throws IOException {
-        Properties Data = new Properties();
-        Data.load(new FileInputStream(path));
+        try (FileInputStream fis = new FileInputStream(path)) {
+            Properties Data = new Properties();
+            Data.load(fis);
 
-        // Load all Data
-        Threads = Integer.parseInt(Data.getProperty("Threads", String.valueOf(Threads)));
-        Stats_PPS = Boolean.parseBoolean(Data.getProperty("StatsPPS", String.valueOf(Stats_PPS)));
-        Stats_bPS = Boolean.parseBoolean(Data.getProperty("StatsbPS", String.valueOf(Stats_PPS)));
+            // Load all Data
+            Threads = Integer.parseInt(Data.getProperty("Threads", String.valueOf(Threads)));
+            Stats_PPS = Boolean.parseBoolean(Data.getProperty("StatsPPS", String.valueOf(Stats_PPS)));
+            Stats_bPS = Boolean.parseBoolean(Data.getProperty("StatsbPS", String.valueOf(Stats_PPS)));
 
-        GameUpdateInterval = Long.parseLong(Data.getProperty("GameUpdateInterval", String.valueOf(GameUpdateInterval)));
-        GameUpdateSocketTimeout = Integer.parseInt(Data.getProperty("GameUpdateSocketTimeout", String.valueOf(GameUpdateSocketTimeout)));
+            GameUpdateInterval = Long.parseLong(Data.getProperty("GameUpdateInterval", String.valueOf(GameUpdateInterval)));
+            GameUpdateSocketTimeout = Integer.parseInt(Data.getProperty("GameUpdateSocketTimeout", String.valueOf(GameUpdateSocketTimeout)));
 
-        ChallengeCodeTTL = Long.parseLong(Data.getProperty("ChallengeCodeTTL", String.valueOf(ChallengeCodeTTL)));
+            ChallengeCodeTTL = Long.parseLong(Data.getProperty("ChallengeCodeTTL", String.valueOf(ChallengeCodeTTL)));
 
-        LocalServer = new InetSocketAddress(InetAddress.getByName(Data.getProperty("LocalServerIPAddress",
-                InetAddress.getLoopbackAddress().getHostAddress())), Integer.parseInt(Data.getProperty("LocalServerPort",
-                "27016")));
-        GameServer  = new InetSocketAddress(InetAddress.getByName(Data.getProperty("GameServerIPAddress",
-                InetAddress.getLoopbackAddress().getHostAddress())), Integer.parseInt(Data.getProperty("GameServerPort",
-                "27015")));
+            LocalServer = new InetSocketAddress(InetAddress.getByName(Data.getProperty("LocalServerIPAddress",
+                    InetAddress.getLoopbackAddress().getHostAddress())), Integer.parseInt(Data.getProperty("LocalServerPort",
+                    "27016")));
+            GameServer  = new InetSocketAddress(InetAddress.getByName(Data.getProperty("GameServerIPAddress",
+                    InetAddress.getLoopbackAddress().getHostAddress())), Integer.parseInt(Data.getProperty("GameServerPort",
+                    "27015")));
 
-        ReceiveBufferSize = Integer.parseInt(Data.getProperty("ReceiveBufferSize", String.valueOf(ReceiveBufferSize)));
-        SendBufferSize = Integer.parseInt(Data.getProperty("SendBufferSize", String.valueOf(SendBufferSize)));
+            ReceiveBufferSize = Integer.parseInt(Data.getProperty("ReceiveBufferSize", String.valueOf(ReceiveBufferSize)));
+            SendBufferSize = Integer.parseInt(Data.getProperty("SendBufferSize", String.valueOf(SendBufferSize)));
 
-        Data.clear(); // Clear Properties
+            UDP_GRO = Boolean.parseBoolean(Data.getProperty("UdpGro", String.valueOf(UDP_GRO)));
+            A2S_RULE = Boolean.parseBoolean(Data.getProperty("A2sRule", String.valueOf(A2S_RULE)));
+        }
     }
 
     private static void displayConfig() {
@@ -204,6 +222,9 @@ public final class Config {
 
         logger.info("ReceiveBufferSize: " + ReceiveBufferSize);
         logger.info("SendBufferSize: " + SendBufferSize);
+
+        logger.info("UDP GRO: " + UDP_GRO);
+        logger.info("A2sRule: " + A2S_RULE);
         logger.info("-------------------------------------------------");
     }
 

@@ -66,3 +66,9 @@ Example: Execute the following command to pass Process Arguments: `java -jar Sou
 -s,--sendBuf <arg>                     Server Send Buffer Size
 -w,--threads <arg>                     Number of Threads
 ```
+
+# Sponsors
+```
+FATALITY~The ImmortaLs 24x7 PuB [bl4rr0w]
+Web: https://www.gametracker.com/server_info/146.56.50.40:55555/
+```
