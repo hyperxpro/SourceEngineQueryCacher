@@ -1,6 +1,5 @@
 package com.aayushatharva.sourcecenginequerycacher.utils;
 
-
 import com.shieldblaze.expressgateway.common.map.SelfExpiringMap;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.PooledByteBufAllocator;
@@ -14,12 +13,12 @@ public final class Cache {
     /**
      * <p> ByteBuf for `A2S_INFO` Packet. </p>
      */
-    public static final ByteBuf A2S_INFO = PooledByteBufAllocator.DEFAULT.buffer();
+    public static final ByteBuf A2S_INFO = PooledByteBufAllocator.DEFAULT.directBuffer();
 
     /**
      * <p> ByteBuf for `A2S_PLAYER` Packet. </p>
      */
-    public static final ByteBuf A2S_PLAYER = PooledByteBufAllocator.DEFAULT.buffer();
+    public static final ByteBuf A2S_PLAYER = PooledByteBufAllocator.DEFAULT.directBuffer();
 
     /**
      * Challenge Code Map
@@ -30,6 +29,10 @@ public final class Cache {
     public static final Map<ByteKey, byte[]> CHALLENGE_MAP = new SelfExpiringMap<>(
             new ConcurrentHashMap<>(), Duration.ofMillis(1000), false
     );
+
+    private Cache() {
+        // Prevent instantiation
+    }
 
     public static final class ByteKey {
 
@@ -51,7 +54,7 @@ public final class Cache {
         public ByteKey(byte[] array) {
             int i = array.length - 1;
             // Only use the rightmost 2 Bytes for storing. If array.length < 2 then we die.
-            this.value = (array[i-1] & 0xFF) << 8 | (array[i] & 0xFF);
+            value = (array[i-1] & 0xFF) << 8 | array[i] & 0xFF;
         }
 
         @Override
@@ -61,13 +64,13 @@ public final class Cache {
              * Make sure to only ever use this in an environment where
              * you can make sure that you compare only to other ByteKeys
              */
-            return this.value == ((ByteKey) o).value;
+            return value == ((ByteKey) o).value;
         }
 
         @Override
         public int hashCode() {
             //if hashCode is 0 then it will get handled as if it was Null
-            return this.value;
+            return value;
         }
     }
 }

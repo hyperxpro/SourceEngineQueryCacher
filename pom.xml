@@ -16,7 +16,7 @@
         <maven.compiler.target>17</maven.compiler.target>
 
         <!-- Version Management -->
-        <netty>4.1.89.Final</netty>
+        <netty>4.1.111.Final</netty>
         <commons_cli>1.4</commons_cli>
         <log4j2>2.19.0</log4j2>
     </properties>
