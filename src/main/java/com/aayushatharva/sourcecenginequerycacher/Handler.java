@@ -130,7 +130,7 @@ final class Handler extends SimpleChannelInboundHandler<DatagramPacket> {
         }
     }
 
-    private void sendA2SChallenge(ChannelHandlerContext ctx, DatagramPacket datagramPacket) {
+    private static void sendA2SChallenge(ChannelHandlerContext ctx, DatagramPacket datagramPacket) {
         byte[] challenge = Cache.CHALLENGE_MAP.computeIfAbsent(new Cache.ByteKey(datagramPacket.sender().getAddress().getAddress()), key -> CHALLENGE_CACHED.get());
 
         // Send A2S CHALLENGE Packet
@@ -140,21 +140,19 @@ final class Handler extends SimpleChannelInboundHandler<DatagramPacket> {
         ctx.writeAndFlush(new DatagramPacket(byteBuf, datagramPacket.sender()), ctx.voidPromise());
     }
 
-    private void sendA2SPlayerResponse(ChannelHandlerContext ctx, DatagramPacket datagramPacket) {
-        if (isIPValid(datagramPacket, Arrays.copyOfRange(ByteBufUtil.getBytes(datagramPacket.content()),
-                A2S_PLAYER_CODE_POS, A2S_PLAYER_CODE_POS + LEN_CODE), "A2S_PLAYER")) {
+    private static void sendA2SPlayerResponse(ChannelHandlerContext ctx, DatagramPacket datagramPacket) {
+        if (isIPValid(datagramPacket, Arrays.copyOfRange(ByteBufUtil.getBytes(datagramPacket.content()), A2S_PLAYER_CODE_POS, A2S_PLAYER_CODE_POS + LEN_CODE), "A2S_PLAYER")) {
             ctx.writeAndFlush(new DatagramPacket(Cache.A2S_PLAYER.copy(), datagramPacket.sender()), ctx.voidPromise());
         }
     }
 
-    private void sendA2SInfoResponse(ChannelHandlerContext ctx, DatagramPacket datagramPacket) {
-        if (isIPValid(datagramPacket, Arrays.copyOfRange(ByteBufUtil.getBytes(datagramPacket.content()),
-                A2S_INFO_CODE_POS, A2S_INFO_CODE_POS + LEN_CODE), "A2S_INFO")) {
+    private static void sendA2SInfoResponse(ChannelHandlerContext ctx, DatagramPacket datagramPacket) {
+        if (isIPValid(datagramPacket, Arrays.copyOfRange(ByteBufUtil.getBytes(datagramPacket.content()), A2S_INFO_CODE_POS, A2S_INFO_CODE_POS + LEN_CODE), "A2S_INFO")) {
             ctx.writeAndFlush(new DatagramPacket(Cache.A2S_INFO.copy(), datagramPacket.sender()), ctx.voidPromise());
         }
     }
 
-    private boolean isIPValid(DatagramPacket datagramPacket, byte[] challengeCode, String logTrace) {
+    private static boolean isIPValid(DatagramPacket datagramPacket, byte[] challengeCode, String logTrace) {
         // Look for Client IP Address in Cache and load Challenge Code Value from it.
         // Some services reuse the same challenge code to retrieve all three packet types.
         // We want that as it helps minimize traffic in the internet. Hence, we only get() the code, not remove() it here.
