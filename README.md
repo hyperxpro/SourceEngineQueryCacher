@@ -1,6 +1,7 @@
 # Source Engine Query Cacher
-![Downloads](
-https://img.shields.io/github/downloads/hyperxpro/SourceEngineQueryCacher/total)
+
+## Project Update
+This project is no longer maintained and has been archived. It remains available for reference but will not receive further updates.
 
 <p> High-Performance Source Engine Query Cacher for caching and responding A2S_INFO and A2S_PLAYER packets. </p>
 <p> Features:
